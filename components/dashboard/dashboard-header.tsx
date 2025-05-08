@@ -14,8 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Search, Bell, Cloud, Upload, UserCircle, LogOut, Settings } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+import { Cloud, Upload, UserCircle, LogOut as LogOutIcon, Menu, X } from 'lucide-react';
 
 interface DashboardHeaderProps {
   user?: {
@@ -23,82 +22,113 @@ interface DashboardHeaderProps {
     email?: string | null;
     image?: string | null;
   };
+  onMenuClick?: () => void;
+  isSidebarOpen?: boolean;
 }
 
-export default function DashboardHeader({ user }: DashboardHeaderProps) {
-  const { data: session } = useSession();
-  const [searchQuery, setSearchQuery] = useState('');
-
-  const handleSignOut = () => {
-    signOut({ callbackUrl: '/' });
+export default function DashboardHeader({ user, onMenuClick, isSidebarOpen }: DashboardHeaderProps) {
+  const handleSignOut = async () => {
+    await signOut({ callbackUrl: '/' });
   };
 
   return (
-    <header className="border-b bg-background z-10 sticky top-0">
-      <div className="container mx-auto flex h-16 items-center justify-between px-2 md:px-4">
-        <div className="flex items-center">
-          <Link href="/dashboard" className="flex items-center">
-            <motion.div 
-              initial={{ rotate: 0 }}
-              animate={{ rotate: 360 }}
-              transition={{ duration: 2, repeat: 0 }}
-            >
-              <Cloud className="h-6 w-6 text-primary mr-2" />
-            </motion.div>
-            <span className="text-xl font-bold">CardSync</span>
-          </Link>
-        </div>
-        
-        <div className="hidden md:block flex-1 mx-6">
-          <div className="relative max-w-md">
-            <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="名刺を検索..."
-              className="pl-8 w-full max-w-md"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-        </div>
-        
-        <div className="flex items-center gap-2 md:gap-4">
-          <Button variant="outline" size="icon" className="hidden md:inline-flex">
-            <Bell className="h-5 w-5" />
-          </Button>
+    <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b bg-primary px-4 text-primary-foreground shadow sm:px-6">
+      <div className="flex items-center sm:hidden">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="text-primary-foreground hover:bg-primary-foreground/10"
+          onClick={onMenuClick}
+        >
+          {isSidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          <span className="sr-only">{isSidebarOpen ? 'Close menu' : 'Open menu'}</span>
+        </Button>
+      </div>
+      
+      <div className="flex flex-1 items-center justify-center sm:justify-start">
+        <Link href="/dashboard" className="flex items-center gap-2">
+          <motion.div 
+            initial={{ rotate: 0 }}
+            animate={{ rotate: 360 }}
+            transition={{ duration: 2, repeat: 0 }}
+          >
+            <Cloud className="h-6 w-6 text-primary-foreground" />
+          </motion.div>
+          <span className="text-xl font-bold text-primary-foreground">CardSync</span>
+        </Link>
+      </div>
 
-          <Button variant="default" size="sm" className="hidden md:flex">
-            <Upload className="mr-2 h-4 w-4" />
-            名刺をアップロード
-          </Button>
-          
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={user?.image || ''} alt={user?.name || 'User'} />
-                  <AvatarFallback>{user?.name?.charAt(0) || 'U'}</AvatarFallback>
-                </Avatar>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>アカウント</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <UserCircle className="mr-2 h-4 w-4" />
-                <span>プロフィール</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Settings className="mr-2 h-4 w-4" />
-                <span>設定</span>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleSignOut}>
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>ログアウト</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+      <div className="hidden sm:flex items-center gap-4">
+        <Button variant="default" size="sm" className="bg-primary-foreground text-primary hover:bg-primary-foreground/90">
+          <Upload className="mr-2 h-4 w-4" />
+          名刺をアップロード
+        </Button>
+        
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="outline"
+              className="overflow-hidden rounded-full border-2 border-primary-foreground/50 hover:border-primary-foreground/80"
+              size="icon"
+            >
+              <Avatar className="h-8 w-8">
+                <AvatarImage src={user?.image ?? undefined} alt={user?.name ?? 'User'} />
+                <AvatarFallback className="bg-primary-foreground text-primary">
+                  {user?.name?.charAt(0)?.toUpperCase() || <UserCircle size={20} />}
+                </AvatarFallback>
+              </Avatar>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56 bg-card text-card-foreground mt-1">
+            <DropdownMenuLabel className="font-normal">
+              <div className="flex flex-col space-y-1">
+                <p className="text-sm font-medium leading-none">{user?.name || 'User'}</p>
+                <p className="text-xs leading-none text-muted-foreground">
+                  {user?.email}
+                </p>
+              </div>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleSignOut} className="text-destructive hover:!bg-destructive/10 hover:!text-destructive focus:bg-destructive/10 focus:text-destructive">
+              <LogOutIcon className="mr-2 h-4 w-4" />
+              <span>ログアウト</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
+      <div className="flex items-center sm:hidden ml-auto">
+         <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="outline"
+              className="overflow-hidden rounded-full border-2 border-primary-foreground/50 hover:border-primary-foreground/80"
+              size="icon"
+            >
+              <Avatar className="h-8 w-8">
+                <AvatarImage src={user?.image ?? undefined} alt={user?.name ?? 'User'} />
+                <AvatarFallback className="bg-primary-foreground text-primary">
+                  {user?.name?.charAt(0)?.toUpperCase() || <UserCircle size={20} />}
+                </AvatarFallback>
+              </Avatar>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56 bg-card text-card-foreground mt-1">
+             <DropdownMenuLabel className="font-normal">
+              <div className="flex flex-col space-y-1">
+                <p className="text-sm font-medium leading-none">{user?.name || 'User'}</p>
+                <p className="text-xs leading-none text-muted-foreground">
+                  {user?.email}
+                </p>
+              </div>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleSignOut} className="text-destructive hover:!bg-destructive/10 hover:!text-destructive focus:bg-destructive/10 focus:text-destructive">
+              <LogOutIcon className="mr-2 h-4 w-4" />
+              <span>ログアウト</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   );

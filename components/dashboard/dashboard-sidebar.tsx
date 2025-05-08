@@ -1,7 +1,6 @@
 'use client';
 
-import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -12,108 +11,126 @@ import {
   BarChart3,
   Settings,
   HelpCircle,
-  ChevronRight,
-  ChevronLeft,
+  X,
+  Bell,
 } from 'lucide-react';
+import { useEffect } from 'react';
 
 interface DashboardSidebarProps {
-  activeView: 'cards' | 'stats';
-  setActiveView: (view: 'cards' | 'stats') => void;
+  isOpen: boolean;
+  setIsOpen: (isOpen: boolean) => void;
 }
 
-export default function DashboardSidebar({ activeView, setActiveView }: DashboardSidebarProps) {
-  const [collapsed, setCollapsed] = useState(false);
-
-  const toggleSidebar = () => {
-    setCollapsed(!collapsed);
-  };
-
-  const navigation = [
-    { name: 'Dashboard', icon: LayoutDashboard, view: 'cards' as const },
-    { name: 'ドライブ連携', icon: FolderSync, view: 'drive' as const },
-    { name: '名刺一覧', icon: Contact, view: 'cards' as const },
-    { name: '分析', icon: BarChart3, view: 'stats' as const }
+export default function DashboardSidebar({
+  isOpen,
+  setIsOpen
+}: DashboardSidebarProps) {
+  const primaryNavigation = [
+    { name: '名刺一覧', icon: Contact, href: '/dashboard/cards' },
+    { name: 'Google Drive連携', icon: FolderSync, href: '/dashboard' },
   ];
 
+  const secondaryNavigation = [
+    { name: 'お知らせ', icon: Bell, href: '/dashboard/notifications' },
+    { name: '設定', icon: Settings, href: '/dashboard/settings' },
+    { name: 'ヘルプ', icon: HelpCircle, href: '/dashboard/help' },
+  ];
+
+  const handleLinkClick = (href: string) => {
+    console.log(`Navigating to ${href}`);
+    if (window.innerWidth < 768) {
+        setIsOpen(false);
+    }
+  }
+  
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) {
+        setIsOpen(true); 
+      } else {
+        // スマホサイズに戻ったときに勝手に開かないように、ユーザー操作で再度開くまでは閉じておく
+        // setIsOpen(false); // ← この行は意図によって調整
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    handleResize();
+    return () => window.removeEventListener('resize', handleResize);
+  }, [setIsOpen]);
+
   return (
-    <motion.aside
-      initial={{ width: '100%', height: 'auto' }}
-      animate={{ 
-        width: collapsed ? 80 : 240,
-        height: '100%'
-      }}
-      transition={{ duration: 0.3, ease: 'easeInOut' }}
-      className={cn(
-        "bg-card flex flex-col",
-        "md:h-full md:border-r",
-        "fixed bottom-0 left-0 right-0 md:relative",
-        "z-50"
-      )}
-    >
-      <div className="hidden md:flex p-4 items-center justify-between border-b">
-        {!collapsed && (
+    <>
+      <AnimatePresence>
+        {isOpen && window.innerWidth < 768 && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.1 }}
-            className="text-lg font-semibold"
-          >
-            CardSync
-          </motion.div>
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 z-40 md:hidden"
+            onClick={() => setIsOpen(false)}
+          />
         )}
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={toggleSidebar}
-          className={cn("ml-auto", collapsed && "mx-auto")}
-        >
-          {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
-        </Button>
-      </div>
-      
-      <nav className="flex md:flex-col p-2 md:space-y-1 space-x-1 md:space-x-0">
-        {navigation.map((item) => (
-          <Button
-            key={item.name}
-            variant={activeView === item.view ? "secondary" : "ghost"}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.aside
+            initial={{ x: '-100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '-100%' }}
+            transition={{ duration: 0.3, ease: 'easeInOut' }}
             className={cn(
-              "w-full justify-start h-10",
-              collapsed && "justify-center px-0"
+              "bg-card flex flex-col fixed inset-y-0 left-0 z-50 w-64 md:w-60 lg:w-64",
+              "border-r md:relative md:translate-x-0"
             )}
-            onClick={() => {
-              if (item.view === 'cards' || item.view === 'stats') {
-                setActiveView(item.view);
-              }
-            }}
           >
-            <item.icon className={cn("h-5 w-5", collapsed ? "mr-0" : "mr-2")} />
-            {!collapsed && <span>{item.name}</span>}
-          </Button>
-        ))}
-      </nav>
-      
-      <div className="hidden md:block p-2 border-t">
-        <Button
-          variant="ghost"
-          className={cn(
-            "w-full justify-start h-10",
-            collapsed && "justify-center px-0"
-          )}
-        >
-          <Settings className={cn("h-5 w-5", collapsed ? "mr-0" : "mr-2")} />
-          {!collapsed && <span>Settings</span>}
-        </Button>
-        <Button
-          variant="ghost"
-          className={cn(
-            "w-full justify-start h-10",
-            collapsed && "justify-center px-0"
-          )}
-        >
-          <HelpCircle className={cn("h-5 w-5", collapsed ? "mr-0" : "mr-2")} />
-          {!collapsed && <span>Help</span>}
-        </Button>
-      </div>
-    </motion.aside>
+            <div className="flex p-4 items-center justify-between border-b h-14">
+              <Link href="/dashboard" className="text-lg font-semibold text-primary" onClick={() => {if(window.innerWidth < 768) setIsOpen(false)}}>
+                CardSync
+              </Link>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => setIsOpen(false)}
+                className="md:hidden text-muted-foreground"
+              >
+                <X size={18} />
+              </Button>
+            </div>
+            
+            <nav className="flex flex-col p-2 space-y-1 flex-grow">
+              {primaryNavigation.map((item) => (
+                <Button
+                  key={item.name}
+                  variant={item.href === '/dashboard' ? "secondary" : "ghost"}
+                  className="w-full justify-start h-10"
+                  asChild
+                >
+                  <Link href={item.href} onClick={() => handleLinkClick(item.href)}>
+                    <item.icon className="h-5 w-5 mr-3" />
+                    <span>{item.name}</span>
+                  </Link>
+                </Button>
+              ))}
+            </nav>
+            
+            <div className="p-2 border-t">
+              {secondaryNavigation.map((item) => (
+                 <Button
+                  key={item.name}
+                  variant={"ghost"}
+                  className="w-full justify-start h-10 text-muted-foreground hover:text-foreground hover:bg-accent"
+                  asChild
+                >
+                  <Link href={item.href} onClick={() => handleLinkClick(item.href)}>
+                    <item.icon className="h-5 w-5 mr-3" />
+                    <span>{item.name}</span>
+                  </Link>
+                </Button>
+              ))}
+            </div>
+          </motion.aside>
+        )}
+      </AnimatePresence>
+    </>
   );
 }

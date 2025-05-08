@@ -1,24 +1,32 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import DashboardHeader from './dashboard-header';
 import DashboardSidebar from './dashboard-sidebar';
-import BusinessCardsList from './business-cards-list';
-import EmptyState from './empty-state';
-import DashboardStats from './dashboard-stats';
-import { Stats, BusinessCard } from '@/lib/types';
+import DriveSync from './drive-sync';
+import { BusinessCard } from '@/lib/types';
 
 export default function Dashboard() {
-  const [activeView, setActiveView] = useState<'cards' | 'stats'>('cards');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  // PC表示時は常にサイドバーを表示
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) { // lgブレークポイント
+        setIsSidebarOpen(true);
+      } else if (!isSidebarOpen) {
+        setIsSidebarOpen(false);
+      }
+    };
+    
+    window.addEventListener('resize', handleResize);
+    handleResize(); // 初期表示時に実行
+    
+    return () => window.removeEventListener('resize', handleResize);
+  }, [isSidebarOpen]);
 
   // Mock data for demonstration
-  const mockStats: Stats = {
-    totalCards: 24,
-    processedCards: 18,
-    pendingCards: 5,
-    failedCards: 1
-  };
-
   const mockCards: BusinessCard[] = [
     {
       id: '1',
@@ -70,27 +78,62 @@ export default function Dashboard() {
   const showCards = mockCards.length > 0;
 
   return (
-    <div className="flex flex-col md:flex-row h-screen overflow-hidden">
-      <DashboardSidebar activeView={activeView} setActiveView={setActiveView} />
+    <div className="flex h-screen bg-background overflow-hidden">
+      {/* サイドバーのオーバーレイ */}
+      <AnimatePresence>
+        {isSidebarOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+            onClick={() => setIsSidebarOpen(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* サイドバー */}
+      <DashboardSidebar 
+        isOpen={isSidebarOpen}
+        setIsOpen={setIsSidebarOpen}
+      />
+      
+      {/* メインコンテンツ */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        <DashboardHeader user={{
-          name: 'Demo User',
-          email: 'demo@example.com',
-          image: 'https://images.pexels.com/photos/2269872/pexels-photo-2269872.jpeg'
-        }} />
-        <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-muted/20">
-          {activeView === 'stats' ? (
-            <DashboardStats stats={mockStats} />
-          ) : (
-            <>
-              {showCards ? (
-                <BusinessCardsList cards={mockCards} />
-              ) : (
-                <EmptyState />
-              )}
-            </>
-          )}
+        <DashboardHeader 
+          user={{
+            name: 'Demo User',
+            email: 'demo@example.com',
+            image: 'https://images.pexels.com/photos/2269872/pexels-photo-2269872.jpeg'
+          }}
+          onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          isSidebarOpen={isSidebarOpen}
+        />
+        <main className="flex-1 overflow-y-auto p-3 sm:p-4 lg:p-6 bg-muted/20">
+          <DriveSync />
         </main>
+      </div>
+
+      {/* モバイル用下部ナビゲーション */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-primary border-t border-primary-foreground/20 flex justify-around py-2 z-30 text-primary-foreground">
+        <button
+          onClick={() => console.log("名刺一覧 (仮)")}
+          className={`flex flex-col items-center p-2 rounded-md hover:bg-primary-foreground/10`}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+          </svg>
+          <span className="text-xs mt-1">名刺一覧</span>
+        </button>
+        <button
+          onClick={() => setIsSidebarOpen(true)}
+          className={`flex flex-col items-center p-2 rounded-md hover:bg-primary-foreground/10`}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+          <span className="text-xs mt-1">メニュー</span>
+        </button>
       </div>
     </div>
   );
