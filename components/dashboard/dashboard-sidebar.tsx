@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useEffect } from 'react';
 import { Session } from 'next-auth';
+import { usePathname } from 'next/navigation';
 
 interface DashboardSidebarProps extends React.HTMLAttributes<HTMLElement> {
   isOpen: boolean;
@@ -29,9 +30,12 @@ export default function DashboardSidebar({
   setIsOpen,
   session
 }: DashboardSidebarProps) {
+  const pathname = usePathname();
+
   const primaryNavigation = [
+    { name: 'Google連携', icon: LayoutDashboard, href: '/dashboard' },
     { name: '名刺一覧', icon: Contact, href: '/dashboard/cards' },
-    { name: '画像アップロード・同期', icon: UploadCloud, href: '/dashboard/drive-sync' },
+    { name: '画像アップロード', icon: UploadCloud, href: '/dashboard/drive-sync' },
   ];
 
   const secondaryNavigation = [
@@ -102,35 +106,41 @@ export default function DashboardSidebar({
             </div>
             
             <nav className="flex flex-col p-2 space-y-1 flex-grow">
-              {primaryNavigation.map((item) => (
-                <Button
-                  key={item.name}
-                  variant={item.href === '/dashboard' ? "secondary" : "ghost"}
-                  className="w-full justify-start h-10"
-                  asChild
-                >
-                  <Link href={item.href} onClick={() => handleLinkClick(item.href)}>
-                    <item.icon className="h-5 w-5 mr-3" />
-                    <span>{item.name}</span>
-                  </Link>
-                </Button>
-              ))}
+              {primaryNavigation.map((item) => {
+                const isActive = pathname === item.href;
+                return (
+                  <Button
+                    key={item.name}
+                    variant={isActive ? "secondary" : "ghost"}
+                    className="w-full justify-start h-10"
+                    asChild
+                  >
+                    <Link href={item.href} onClick={() => handleLinkClick(item.href)}>
+                      <item.icon className={cn("h-5 w-5 mr-3", isActive ? "text-secondary-foreground" : "text-muted-foreground group-hover:text-foreground")} />
+                      <span className={cn(isActive ? "text-secondary-foreground" : "group-hover:text-foreground")}>{item.name}</span>
+                    </Link>
+                  </Button>
+                );
+              })}
             </nav>
             
             <div className="p-2 border-t">
-              {secondaryNavigation.map((item) => (
-                 <Button
-                  key={item.name}
-                  variant={"ghost"}
-                  className="w-full justify-start h-10 text-muted-foreground hover:text-foreground hover:bg-accent"
-                  asChild
-                >
-                  <Link href={item.href} onClick={() => handleLinkClick(item.href)}>
-                    <item.icon className="h-5 w-5 mr-3" />
-                    <span>{item.name}</span>
-                  </Link>
-                </Button>
-              ))}
+              {secondaryNavigation.map((item) => {
+                const isActive = pathname === item.href;
+                return (
+                  <Button
+                    key={item.name}
+                    variant={isActive ? "secondary" : "ghost"}
+                    className="w-full justify-start h-10 text-muted-foreground hover:text-foreground hover:bg-accent"
+                    asChild
+                  >
+                    <Link href={item.href} onClick={() => handleLinkClick(item.href)}>
+                      <item.icon className={cn("h-5 w-5 mr-3", isActive ? "" : "text-muted-foreground group-hover:text-foreground")} />
+                      <span className={cn(isActive ? "" : "group-hover:text-foreground")}>{item.name}</span>
+                    </Link>
+                  </Button>
+                );
+              })}
             </div>
           </motion.aside>
         )}

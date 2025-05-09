@@ -9,6 +9,7 @@ import { ListChecks, UploadCloud } from 'lucide-react';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react'; // セッション情報をクライアントサイドで取得
 import { type Session } from 'next-auth'; // Session 型を明示的にインポート
+import GlobalLoadingIndicator from '@/app/loading'; // <--- app/loading.tsx をインポート
 
 export default function DashboardAppLayout({ children }: { children: ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -50,11 +51,8 @@ export default function DashboardAppLayout({ children }: { children: ReactNode }
   }
 
   if (status === "loading") {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
-        <p>読み込み中...</p>
-      </div>
-    );
+    // セッション読み込み中の表示を共通ローディングインジケータに変更
+    return <GlobalLoadingIndicator />;
   }
 
   return (
@@ -93,7 +91,8 @@ export default function DashboardAppLayout({ children }: { children: ReactNode }
         />
         {/* page.tsx の内容がここにレンダリングされる */}
         <main className="flex-1 overflow-y-auto p-3 sm:p-4 lg:p-6 bg-muted/20 pb-20 lg:pb-6"> {/* モバイルフッター分の余白確保 */}
-          <Suspense fallback={<p>コンテンツを読み込み中...</p>}>
+          {/* Suspenseのフォールバック表示を共通ローディングインジケータに変更 */}
+          <Suspense fallback={<GlobalLoadingIndicator />}>
             {children}
           </Suspense>
         </main>
@@ -101,21 +100,23 @@ export default function DashboardAppLayout({ children }: { children: ReactNode }
 
       {/* モバイル用下部ナビゲーション */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-primary border-t border-primary-foreground/20 flex justify-around py-2 z-30 text-primary-foreground">
-        <Link href="/dashboard/cards" legacyBehavior passHref>
-          <a className={`flex flex-col items-center p-2 rounded-md hover:bg-primary-foreground/10 w-1/2 ${
+        <Link
+          href="/dashboard/cards"
+          className={`flex flex-col items-center p-2 rounded-md hover:bg-primary-foreground/10 active:bg-primary-foreground/30 w-1/2 ${
             pathname === '/dashboard/cards' ? 'bg-primary-foreground/20' : ''
-          }`}>
-            <ListChecks className="h-6 w-6" />
-            <span className="text-xs mt-1">名刺一覧</span>
-          </a>
+          }`}
+        >
+          <ListChecks className="h-6 w-6" />
+          <span className="text-xs mt-1">名刺一覧</span>
         </Link>
-        <Link href="/dashboard/drive-sync" legacyBehavior passHref>
-          <a className={`flex flex-col items-center p-2 rounded-md hover:bg-primary-foreground/10 w-1/2 ${
+        <Link
+          href="/dashboard/drive-sync"
+          className={`flex flex-col items-center p-2 rounded-md hover:bg-primary-foreground/10 active:bg-primary-foreground/30 w-1/2 ${
             pathname === '/dashboard/drive-sync' ? 'bg-primary-foreground/20' : ''
-          }`}>
-            <UploadCloud className="h-6 w-6" />
-            <span className="text-xs mt-1">アップロード</span>
-          </a>
+          }`}
+        >
+          <UploadCloud className="h-6 w-6" />
+          <span className="text-xs mt-1">アップロード</span>
         </Link>
       </div>
     </div>
