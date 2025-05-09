@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Cloud, UserCircle, LogOut as LogOutIcon, Menu, X } from 'lucide-react';
+import { type Session } from 'next-auth';
 
 interface DashboardHeaderProps {
   user?: {
@@ -24,9 +25,10 @@ interface DashboardHeaderProps {
   };
   onMenuClick?: () => void;
   isSidebarOpen?: boolean;
+  session: Session | null;
 }
 
-export default function DashboardHeader({ user, onMenuClick, isSidebarOpen }: DashboardHeaderProps) {
+export default function DashboardHeader({ user, onMenuClick, isSidebarOpen, session }: DashboardHeaderProps) {
   const handleSignOut = async () => {
     await signOut({ callbackUrl: '/' });
   };

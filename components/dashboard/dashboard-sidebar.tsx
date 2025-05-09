@@ -16,15 +16,18 @@ import {
   UploadCloud
 } from 'lucide-react';
 import { useEffect } from 'react';
+import { Session } from 'next-auth';
 
-interface DashboardSidebarProps {
+interface DashboardSidebarProps extends React.HTMLAttributes<HTMLElement> {
   isOpen: boolean;
-  setIsOpen: (isOpen: boolean) => void;
+  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  session: Session | null;
 }
 
 export default function DashboardSidebar({
   isOpen,
-  setIsOpen
+  setIsOpen,
+  session
 }: DashboardSidebarProps) {
   const primaryNavigation = [
     { name: '名刺一覧', icon: Contact, href: '/dashboard/cards' },

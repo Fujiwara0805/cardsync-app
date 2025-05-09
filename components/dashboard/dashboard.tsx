@@ -5,8 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import DashboardHeader from './dashboard-header';
 import DashboardSidebar from './dashboard-sidebar';
 import DriveSync from './drive-sync';
-import { BusinessCard } from '@/lib/types';
 import { ListChecks, UploadCloud } from 'lucide-react';
+import Link from 'next/link';
 
 export default function Dashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -27,56 +27,7 @@ export default function Dashboard() {
     return () => window.removeEventListener('resize', handleResize);
   }, [isSidebarOpen]);
 
-  // Mock data for demonstration
-  const mockCards: BusinessCard[] = [
-    {
-      id: '1',
-      name: '山田 太郎',
-      company: '株式会社テクノロジー',
-      title: '代表取締役社長',
-      email: 'yamada.taro@technology.co.jp',
-      phone: '03-1234-5678',
-      address: '〒100-0001 東京都千代田区千代田1-1',
-      website: 'https://technology.co.jp',
-      notes: '',
-      imageUrl: 'https://images.pexels.com/photos/5699456/pexels-photo-5699456.jpeg',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      status: 'processed'
-    },
-    {
-      id: '2',
-      name: '佐藤 花子',
-      company: '株式会社イノベーション',
-      title: '技術部長',
-      email: 'sato.hanako@innovation.co.jp',
-      phone: '03-9876-5432',
-      address: '〒150-0002 東京都渋谷区渋谷2-2',
-      website: 'https://innovation.co.jp',
-      notes: '2025年テクノロジーカンファレンスにて名刺交換',
-      imageUrl: 'https://images.pexels.com/photos/5699456/pexels-photo-5699456.jpeg',
-      createdAt: new Date(Date.now() - 86400000).toISOString(),
-      updatedAt: new Date(Date.now() - 86400000).toISOString(),
-      status: 'processed'
-    },
-    {
-      id: '3',
-      name: '鈴木 一郎',
-      company: 'グローバルサービス株式会社',
-      title: 'マーケティング部長',
-      email: 'suzuki.ichiro@globalservices.co.jp',
-      phone: '03-5555-1234',
-      address: '〒107-0052 東京都港区赤坂3-3',
-      website: 'https://globalservices.co.jp',
-      notes: '',
-      imageUrl: 'https://images.pexels.com/photos/5699456/pexels-photo-5699456.jpeg',
-      createdAt: new Date(Date.now() - 172800000).toISOString(),
-      updatedAt: new Date(Date.now() - 172800000).toISOString(),
-      status: 'pending'
-    }
-  ];
 
-  const showCards = mockCards.length > 0;
 
   return (
     <div className="flex min-h-screen bg-background overflow-hidden">
@@ -117,13 +68,12 @@ export default function Dashboard() {
 
       {/* モバイル用下部ナビゲーション */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-primary border-t border-primary-foreground/20 flex justify-around py-2 z-30 text-primary-foreground">
-        <button
-          onClick={() => console.log("名刺一覧 (仮)")}
-          className={`flex flex-col items-center p-2 rounded-md hover:bg-primary-foreground/10 w-1/2`}
-        >
-          <ListChecks className="h-6 w-6" />
-          <span className="text-xs mt-1">名刺一覧</span>
-        </button>
+        <Link href="/dashboard/cards" legacyBehavior passHref>
+          <a className={`flex flex-col items-center p-2 rounded-md hover:bg-primary-foreground/10 w-1/2`}>
+            <ListChecks className="h-6 w-6" />
+            <span className="text-xs mt-1">名刺一覧</span>
+          </a>
+        </Link>
         <button
           onClick={() => alert('画像アップロード（未実装です。drive-syncページへ遷移予定）')}
           className={`flex flex-col items-center p-2 rounded-md hover:bg-primary-foreground/10 w-1/2`}
