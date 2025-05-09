@@ -5,9 +5,16 @@ import { motion } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { FolderSync, Upload, FileSpreadsheet, Check, AlertCircle, LogIn, LogOut, Save, CheckCircle, Copy, Edit, Loader2 } from 'lucide-react';
+import { FolderSync, Upload, FileSpreadsheet, Check, AlertCircle, LogIn, LogOut, Save, CheckCircle, Copy, Edit, Loader2, Info } from 'lucide-react';
 import { useSession, signIn, signOut } from 'next-auth/react';
 import { cn } from '@/lib/utils';
+import { ToastNotification, type NotificationType } from '@/components/ui/toast-notification';
+
+interface NotificationState {
+  isOpen: boolean;
+  message: string;
+  type: NotificationType;
+}
 
 export default function DriveSync() {
   const { data: session, status } = useSession();
@@ -22,6 +29,11 @@ export default function DriveSync() {
   const [isLoadingSettings, setIsLoadingSettings] = useState(true);
   const [hasExistingSettings, setHasExistingSettings] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [notification, setNotification] = useState<NotificationState>({
+    isOpen: false,
+    message: '',
+    type: 'info',
+  });
 
   const serviceAccountEmail = process.env.NEXT_PUBLIC_GOOGLE_SERVICE_ACCOUNT_EMAIL;
 
@@ -73,35 +85,39 @@ export default function DriveSync() {
     setSpreadsheetId('');
   };
 
+  const showNotification = (message: string, type: NotificationType, duration?: number) => {
+    setNotification({ isOpen: true, message, type });
+  };
+
   const handleSetSpreadsheet = () => {
     if (!spreadsheetId) {
-      alert('スプレッドシートIDを入力してください。');
+      showNotification('スプレッドシートIDを入力してください。', 'error');
       return;
     }
-    alert('スプレッドシートIDが設定されました: ' + spreadsheetId + '\n（実際にはバックエンドで保存処理が必要です）');
+    showNotification('スプレッドシートIDが設定されました: ' + spreadsheetId + '\n（実際にはバックエンドで保存処理が必要です）', 'info');
   };
   
   const handleSetFolderId = () => {
     if (!folderId) {
-      alert('フォルダIDを入力してください。');
+      showNotification('フォルダIDを入力してください。', 'error');
       return;
     }
-    alert('フォルダIDが設定されました: ' + folderId + '\n（実際にはバックエンドで保存処理が必要です）');
+    showNotification('フォルダIDが設定されました: ' + folderId + '\n（実際にはバックエンドで保存処理が必要です）', 'info');
   }
 
   const handleSaveSettings = async () => {
     console.log('handleSaveSettings called. Status:', status, 'Session:', session);
 
     if (status === 'loading') {
-      alert('認証情報を確認中です。少し時間をおいて再度お試しください。');
+      showNotification('認証情報を確認中です。少し時間をおいて再度お試しください。', 'info');
       return;
     }
     if (!session?.user?.id) {
-      alert('認証情報がありません。再度ログインしてください。');
+      showNotification('認証情報がありません。再度ログインしてください。', 'error');
       return;
     }
     if (!folderId || !spreadsheetId) {
-      alert('Google DriveのフォルダIDとスプレッドシートIDの両方を設定してください。');
+      showNotification('Google DriveのフォルダIDとスプレッドシートIDの両方を設定してください。', 'error');
       return;
     }
     
@@ -117,7 +133,7 @@ export default function DriveSync() {
         throw new Error(result.error || '設定の保存/更新に失敗しました。');
       }
       
-      alert(`設定が${hasExistingSettings ? '更新' : '保存'}されました！`);
+      showNotification(`設定が${hasExistingSettings ? '更新' : '保存'}されました！`, 'success');
       console.log('保存/更新結果:', result.data);
       
       setHasExistingSettings(true);
@@ -127,7 +143,7 @@ export default function DriveSync() {
 
     } catch (error: any) {
       console.error('設定保存/更新エラー:', error);
-      alert(`設定の${hasExistingSettings ? '更新' : '保存'}中にエラーが発生しました。\n${error.message}`);
+      showNotification(`設定の${hasExistingSettings ? '更新' : '保存'}中にエラーが発生しました。\n${error.message}`, 'error');
     } finally {
       setIsSaving(false);
     }
@@ -135,15 +151,15 @@ export default function DriveSync() {
 
   const syncNow = async () => {
     if (status === 'loading') {
-      alert('認証情報を確認中です。少し時間をおいて再度お試しください。');
+      showNotification('認証情報を確認中です。少し時間をおいて再度お試しください。', 'info');
       return;
     }
     if (!session?.user?.id) {
-      alert('認証情報がありません。再度ログインしてください。');
+      showNotification('認証情報がありません。再度ログインしてください。', 'error');
       return;
     }
     if (!folderId || !spreadsheetId) {
-      alert('名刺処理を開始する前に、Google DriveのフォルダIDとスプレッドシートIDを設定してください。');
+      showNotification('名刺処理を開始する前に、Google DriveのフォルダIDとスプレッドシートIDを設定してください。', 'error');
       return;
     }
 
@@ -167,13 +183,12 @@ export default function DriveSync() {
       }
 
       const result = await response.json();
-
-      alert(result.message || '同期処理が完了しました。詳細はコンソールログを確認してください。');
+      showNotification(result.message || '同期処理が完了しました。詳細はコンソールログを確認してください。', 'success');
       console.log('同期処理結果:', result);
 
     } catch (error: any) {
       console.error('同期処理中にエラーが発生しました (at drive-sync.tsx):', error);
-      alert(`同期処理に失敗しました。\n${error.message}`);
+      showNotification(`同期処理に失敗しました。\n${error.message}`, 'error');
     } finally {
       setProcessing(false);
     }
@@ -183,7 +198,7 @@ export default function DriveSync() {
 
   const copyToClipboard = (text: string | undefined) => {
     if (!text) {
-      alert('コピーするメールアドレスがありません。');
+      showNotification('コピーするメールアドレスがありません。', 'info');
       return;
     }
     if (!navigator.clipboard) {
@@ -196,16 +211,16 @@ export default function DriveSync() {
         textArea.select();
         document.execCommand('copy');
         document.body.removeChild(textArea);
-        alert('メールアドレスをコピーしました！');
+        showNotification('メールアドレスをコピーしました！', 'success');
       } catch (err) {
-        alert('コピーに失敗しました: ' + err);
+        showNotification('コピーに失敗しました: ' + err, 'error');
       }
       return;
     }
     navigator.clipboard.writeText(text).then(() => {
-      alert('メールアドレスをコピーしました！');
+      showNotification('メールアドレスをコピーしました！', 'success');
     }, (err) => {
-      alert('コピーに失敗しました: ' + err);
+      showNotification('コピーに失敗しました: ' + err, 'error');
     });
   };
 
@@ -550,6 +565,13 @@ export default function DriveSync() {
           </motion.div>
         </>
       )}
+
+      <ToastNotification
+        isOpen={notification.isOpen}
+        message={notification.message}
+        type={notification.type}
+        onClose={() => setNotification({ ...notification, isOpen: false })}
+      />
     </div>
   );
 }
