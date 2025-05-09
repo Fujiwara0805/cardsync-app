@@ -40,20 +40,25 @@ export const getFilesFromDrive = async (accessToken: string, folderId?: string) 
 };
 
 // Create or get spreadsheet
-export const getOrCreateSpreadsheet = async (accessToken: string, title: string = 'Business Cards Database') => {
+export const getOrCreateSpreadsheet = async (accessToken: string, title: string = '名刺管理アプリ・データベース') => {
   try {
+    const drive = await getGoogleDriveClient(accessToken);
     const sheets = await getGoogleSheetsClient(accessToken);
-    
-    // First check if spreadsheet already exists
-    const response = await sheets.spreadsheets.list({
-      q: `name = '${title}'`,
+
+    const driveResponse = await drive.files.list({
+      q: `mimeType='application/vnd.google-apps.spreadsheet' and name='${title}' and trashed=false`,
+      fields: 'files(id, name)',
     });
-    
-    if (response.data.spreadsheets && response.data.spreadsheets.length > 0) {
-      return response.data.spreadsheets[0];
+
+    if (driveResponse.data.files && driveResponse.data.files.length > 0 && driveResponse.data.files[0].id) {
+      console.log(`[google-api] Spreadsheet found: ${driveResponse.data.files[0].name} (ID: ${driveResponse.data.files[0].id})`);
+      // 注意: ここではスプレッドシートファイルが見つかっただけで、中のシート名は確認していません。
+      // 必要であれば、ここでさらに sheets.get を呼び出してシート名を確認し、
+      // 目的のシートがなければ作成するロジックもここに追加することが考えられます。
+      return { spreadsheetId: driveResponse.data.files[0].id, properties: { title } };
     }
-    
-    // Create new spreadsheet if it doesn't exist
+
+    console.log(`[google-api] Spreadsheet with title '${title}' not found. Creating new one.`);
     const createResponse = await sheets.spreadsheets.create({
       requestBody: {
         properties: {
@@ -62,36 +67,31 @@ export const getOrCreateSpreadsheet = async (accessToken: string, title: string 
         sheets: [
           {
             properties: {
-              title: 'Business Cards',
+              title: '名刺管理データベース', // ★ APIが参照するシート名と一致させる
             },
-            data: [
+            // 必要であれば初期ヘッダーもここで定義可能
+            /* data: [
               {
                 rowData: [
                   {
                     values: [
-                      { userEnteredValue: { stringValue: 'Name' } },
-                      { userEnteredValue: { stringValue: 'Company' } },
-                      { userEnteredValue: { stringValue: 'Title' } },
-                      { userEnteredValue: { stringValue: 'Email' } },
-                      { userEnteredValue: { stringValue: 'Phone' } },
-                      { userEnteredValue: { stringValue: 'Address' } },
-                      { userEnteredValue: { stringValue: 'Website' } },
-                      { userEnteredValue: { stringValue: 'Notes' } },
-                      { userEnteredValue: { stringValue: 'Image URL' } },
-                      { userEnteredValue: { stringValue: 'Created Date' } },
+                      { userEnteredValue: { stringValue: '氏名' } },
+                      // ... 他のヘッダー
                     ],
                   },
                 ],
               },
-            ],
+            ], */
           },
         ],
       },
     });
-    
+    console.log(`[google-api] New spreadsheet created with ID: ${createResponse.data.spreadsheetId}, Title: ${createResponse.data.properties?.title}`);
+    const initialSheetTitle = createResponse.data.sheets?.[0]?.properties?.title;
+    console.log(`[google-api] Initial sheet in new spreadsheet is named: ${initialSheetTitle}`);
     return createResponse.data;
-  } catch (error) {
-    console.error('Error with Google Sheets:', error);
+  } catch (error: any) {
+    console.error('[google-api] Error in getOrCreateSpreadsheet:', error.message, error.response?.data?.error);
     throw error;
   }
 };

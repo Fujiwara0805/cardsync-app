@@ -218,7 +218,7 @@ export default function DriveSync() {
   };
 
   return (
-    <div className="space-y-8 pb-20 lg:pb-10">
+    <div className="space-y-8">
       <motion.h1 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -433,7 +433,7 @@ export default function DriveSync() {
                       </p>
                       <p className="text-xs text-muted-foreground mt-1">
                         上記で準備したスプレッドシートを、本アプリのサービスアカウントと共有し、**「編集者」**権限を付与してください。
-                        これにより、アプリが抽出した名刺データをシートに書き込めるようになります。
+                        これにより、アプリが抽出した名刺管理データベースをシートに書き込めるようになります。
                       </p>
                       <p className="text-xs text-muted-foreground mt-2">
                         共有するメールアドレス:

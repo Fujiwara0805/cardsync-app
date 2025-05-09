@@ -78,7 +78,7 @@ export default function Dashboard() {
   const showCards = mockCards.length > 0;
 
   return (
-    <div className="flex h-screen bg-background overflow-hidden">
+    <div className="flex min-h-screen bg-background overflow-hidden">
       {/* サイドバーのオーバーレイ */}
       <AnimatePresence>
         {isSidebarOpen && (
@@ -109,7 +109,7 @@ export default function Dashboard() {
           onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)}
           isSidebarOpen={isSidebarOpen}
         />
-        <main className="flex-1 overflow-y-auto p-3 sm:p-4 lg:p-6 bg-muted/20">
+        <main className="flex-1 overflow-y-auto p-3 sm:p-4 lg:p-6 bg-muted/20 pb-16 lg:pb-6">
           <DriveSync />
         </main>
       </div>
