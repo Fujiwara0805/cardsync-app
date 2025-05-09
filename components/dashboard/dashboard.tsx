@@ -6,6 +6,7 @@ import DashboardHeader from './dashboard-header';
 import DashboardSidebar from './dashboard-sidebar';
 import DriveSync from './drive-sync';
 import { BusinessCard } from '@/lib/types';
+import { ListChecks, UploadCloud } from 'lucide-react';
 
 export default function Dashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -118,21 +119,17 @@ export default function Dashboard() {
       <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-primary border-t border-primary-foreground/20 flex justify-around py-2 z-30 text-primary-foreground">
         <button
           onClick={() => console.log("名刺一覧 (仮)")}
-          className={`flex flex-col items-center p-2 rounded-md hover:bg-primary-foreground/10`}
+          className={`flex flex-col items-center p-2 rounded-md hover:bg-primary-foreground/10 w-1/2`}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-          </svg>
+          <ListChecks className="h-6 w-6" />
           <span className="text-xs mt-1">名刺一覧</span>
         </button>
         <button
-          onClick={() => setIsSidebarOpen(true)}
-          className={`flex flex-col items-center p-2 rounded-md hover:bg-primary-foreground/10`}
+          onClick={() => alert('画像アップロード（未実装です。drive-syncページへ遷移予定）')}
+          className={`flex flex-col items-center p-2 rounded-md hover:bg-primary-foreground/10 w-1/2`}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-          <span className="text-xs mt-1">メニュー</span>
+          <UploadCloud className="h-6 w-6" />
+          <span className="text-xs mt-1">アップロード</span>
         </button>
       </div>
     </div>

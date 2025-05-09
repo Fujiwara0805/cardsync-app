@@ -14,7 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Cloud, Upload, UserCircle, LogOut as LogOutIcon, Menu, X } from 'lucide-react';
+import { Cloud, UserCircle, LogOut as LogOutIcon, Menu, X } from 'lucide-react';
 
 interface DashboardHeaderProps {
   user?: {
@@ -59,11 +59,6 @@ export default function DashboardHeader({ user, onMenuClick, isSidebarOpen }: Da
       </div>
 
       <div className="hidden sm:flex items-center gap-4">
-        <Button variant="default" size="sm" className="bg-primary-foreground text-primary hover:bg-primary-foreground/90">
-          <Upload className="mr-2 h-4 w-4" />
-          名刺をアップロード
-        </Button>
-        
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button

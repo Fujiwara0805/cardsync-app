@@ -5,49 +5,24 @@ import { supabase } from '@/lib/supabaseClient';
 import { getDriveClient, getSheetsClient, getVisionClient } from '@/lib/googleAuth'; // Visionクライアントも追加
 import { google } from 'googleapis'; // googleオブジェクトも使う可能性があるのでインポート
 
-// 仮のOCR結果整形関数 (実際にはもっと複雑になる)
+// OCR結果整形関数を大幅に簡略化
 function parseOcrResult(texts: any[]): Record<string, string> {
   const extractedData: Record<string, string> = {
-    name: '',
-    company: '',
-    title: '',
-    email: '',
-    phone: '',
-    address: '',
-    website: '',
-    notes: '', // OCR結果全体をここに入れるなど
+    textInfo: '', // 名刺情報 (OCR全文)
+    userNotes: '', // 将来ユーザーが入力するメモ用 (今回は空)
   };
   
-  if (texts.length > 0 && texts[0].description) {
-    const fullText = texts[0].description;
-    extractedData.notes = fullText; // まず全テキストをメモに
-
-    // ここで正規表現やキーワード検索を使って各項目を抽出するロジックを実装
-    // 以下は非常に単純な例
-    const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
-    const phoneRegex = /(\d{2,4}-\d{2,4}-\d{3,4}|\d{10,11})/; // 簡単な電話番号パターン
-
-    const emailMatch = fullText.match(emailRegex);
-    if (emailMatch) extractedData.email = emailMatch[0];
-
-    const phoneMatch = fullText.match(phoneRegex);
-    if (phoneMatch) extractedData.phone = phoneMatch[0];
-    
-    // 会社名、氏名、役職、住所などはより高度な抽出ロジックが必要
-    // 例: "株式会社" を含む行を会社名候補にするなど
-    const lines = fullText.split('\n');
-    for (const line of lines) {
-      if (line.includes('株式会社') || line.includes('合同会社') || line.includes('有限会社')) {
-        if (!extractedData.company) extractedData.company = line.trim();
-      }
-      // 他の項目の抽出ロジック...
-    }
+  if (texts && texts.length > 0 && texts[0] && texts[0].description) {
+    extractedData.textInfo = texts[0].description.replace(/\n/g, ' '); // 改行をスペースに置換して1行にまとめる
+  } else {
+    extractedData.textInfo = 'OCRでテキスト抽出不可';
   }
+  
   return extractedData;
 }
 
 
-export async function POST(request: Request) { // このAPIは時間がかかる可能性があるのでPOST推奨
+export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     return NextResponse.json({ error: '認証されていません。' }, { status: 401 });
@@ -56,7 +31,6 @@ export async function POST(request: Request) { // このAPIは時間がかかる
   try {
     console.log('Card processing started for user:', session.user.id);
 
-    // 1. ユーザーの設定情報をSupabaseから取得
     const { data: userSettings, error: dbError } = await supabase
       .from('user_drive_settings')
       .select('google_folder_id, google_spreadsheet_id')
@@ -71,170 +45,168 @@ export async function POST(request: Request) { // このAPIは時間がかかる
     const { google_folder_id: folderId, google_spreadsheet_id: spreadsheetId } = userSettings;
     console.log(`Using Folder ID: ${folderId}, Spreadsheet ID: ${spreadsheetId}`);
 
-    // 2. Google Drive APIでファイル一覧取得
+    const sheets = await getSheetsClient();
+    const sheetName = '名刺管理データベース'; // シート名は任意ですが、統一
+    const headerRow = [ // 新しいヘッダー行
+        '名刺情報', 
+        '更新日', 
+        'メモ' 
+    ];
+    const expectedHeaderColumnCount = headerRow.length; // C列まで (3列)
+
+    // --- ヘッダー行の書き込み処理 ---
+    try {
+        const getHeaderRes = await sheets.spreadsheets.values.get({
+            spreadsheetId: spreadsheetId,
+            range: `'${sheetName}'!A1:${String.fromCharCode(64 + expectedHeaderColumnCount)}1`, 
+        });
+
+        let needsHeader = true;
+        if (getHeaderRes.data.values && getHeaderRes.data.values.length > 0) {
+            const existingHeader = getHeaderRes.data.values[0];
+            // ヘッダーが完全に一致するか確認
+            if (existingHeader.length === expectedHeaderColumnCount && 
+                existingHeader[0] === headerRow[0] &&
+                existingHeader[1] === headerRow[1] &&
+                existingHeader[2] === headerRow[2]) {
+                console.log('Header row already exists and matches.');
+                needsHeader = false;
+            } else if (existingHeader.length > 0) {
+                 console.log('Header row exists but does not match. It will be overwritten.');
+                 // 上書きする場合は needsHeader = true のまま
+            }
+        }
+        
+        // もしシートが存在しない場合、needsHeaderがtrueのままでもgetでエラーになるので、
+        // updateの前にシート存在確認＆作成を行う
+        if (needsHeader) {
+            try {
+                await sheets.spreadsheets.get({ spreadsheetId: spreadsheetId, ranges: [`'${sheetName}'!A1`] });
+            } catch (getSheetError: any) {
+                 if (getSheetError.code === 400 && getSheetError.message?.includes('Unable to parse range')) {
+                    console.log(`Sheet '${sheetName}' does not exist. Creating it...`);
+                    await sheets.spreadsheets.batchUpdate({
+                        spreadsheetId: spreadsheetId,
+                        requestBody: { requests: [{ addSheet: { properties: { title: sheetName } } }] },
+                    });
+                    console.log(`Sheet '${sheetName}' created.`);
+                 } else {
+                    throw getSheetError; 
+                 }
+            }
+            // ヘッダーをクリアしてから書き込む (既存の不一致ヘッダーを上書きするため)
+            await sheets.spreadsheets.values.clear({
+                spreadsheetId: spreadsheetId,
+                range: `'${sheetName}'!A1:${String.fromCharCode(64 + expectedHeaderColumnCount)}1`,
+            });
+            console.log('Writing new header row to the sheet.');
+            await sheets.spreadsheets.values.update({
+                spreadsheetId: spreadsheetId,
+                range: `'${sheetName}'!A1`,
+                valueInputOption: 'USER_ENTERED',
+                requestBody: { values: [headerRow] },
+            });
+        }
+    } catch (headerError: any) {
+        console.error('Error processing or writing header row:', headerError.message);
+    }
+    // --- ヘッダー行書き込み処理ここまで ---
+
     const drive = await getDriveClient();
     const listRes = await drive.files.list({
-      q: `'${folderId}' in parents and trashed = false and (mimeType='image/jpeg' or mimeType='image/png')`, // 画像ファイルのみ対象
-      fields: 'files(id, name, webViewLink)', 
-      pageSize: 10, // 一度に処理するファイル数 (多すぎるとタイムアウトの可能性)
+      q: `'${folderId}' in parents and trashed = false and (mimeType='image/jpeg' or mimeType='image/png')`, // HEICに関する記述を削除し、JPEGとPNGのみを対象に戻す
+      fields: 'files(id, name, webViewLink, mimeType)', 
+      pageSize: 10,
     });
+    console.log('Drive API list response:', JSON.stringify(listRes.data, null, 2));
+
 
     const files = listRes.data.files;
     if (!files || files.length === 0) {
-      console.log('No new image files found in Drive folder.');
-      return NextResponse.json({ message: '処理対象の新しい画像ファイルが見つかりませんでした。' }, { status: 200 });
+      console.log('No new image files found in Drive folder (JPEG/PNG only).');
+      return NextResponse.json({ message: '処理対象の新しいJPEG/PNG画像ファイルが見つかりませんでした。ヘッダー行は確認・作成されました。' }, { status: 200 });
     }
-    console.log(`Found ${files.length} files to process.`);
+    console.log(`Found ${files.length} JPEG/PNG files to process.`);
 
     const allExtractedData = [];
     const vision = getVisionClient();
 
     for (const file of files) {
       if (!file.id || !file.name) continue;
-      console.log(`Processing file: ${file.name} (ID: ${file.id})`);
+      
+      // HEICファイルはここで処理対象外とする
+      if (file.name.toLowerCase().endsWith('.heic') || (file.mimeType && file.mimeType.toLowerCase().includes('heic'))) {
+          console.log(`Skipping HEIC file: ${file.name}`);
+          const skippedDataResult = { 
+              textInfo: `HEICファイルは処理対象外です (${file.name})`, 
+              userNotes: '',
+              sourceFileName: file.name,
+              driveFileLink: file.webViewLink || ''
+          };
+          allExtractedData.push(skippedDataResult);
+          continue; // 次のファイルへ
+      }
+
+      console.log(`Processing file: ${file.name} (ID: ${file.id}, Type: ${file.mimeType})`);
+      let parsedDataResult: Record<string, string>;
+      let imageBuffer: Buffer;
 
       try {
-        // 3. 個々のファイルをダウンロード (Drive APIで内容取得)
-        const fileRes = await drive.files.get(
-          { fileId: file.id, alt: 'media' },
-          { responseType: 'arraybuffer' } // Vision APIはBufferを期待するのでarraybufferで取得
-        );
-        const imageBuffer = Buffer.from(fileRes.data as ArrayBuffer);
-
-        // 4. ダウンロードした画像データをOCR API (Google Cloud Vision API) に送信
+        if (file.mimeType === 'image/jpeg' || file.mimeType === 'image/png') {
+            const fileRes = await drive.files.get(
+              { fileId: file.id, alt: 'media' },
+              { responseType: 'arraybuffer' } 
+            );
+            imageBuffer = Buffer.from(fileRes.data as ArrayBuffer);
+        } else {
+          // 基本的に上のDrive検索クエリでフィルタリングされるはずだが、念のため
+          console.log(`Skipping non-JPEG/PNG file: ${file.name} (MIME: ${file.mimeType})`);
+          parsedDataResult = { textInfo: `非対応ファイル形式 (${file.name})`, userNotes: '' };
+          parsedDataResult.sourceFileName = file.name;
+          parsedDataResult.driveFileLink = file.webViewLink || '';
+          allExtractedData.push(parsedDataResult);
+          continue;
+        }
+        
         const [ocrResult] = await vision.textDetection({
           image: { content: imageBuffer },
-          // imageContext: { languageHints: ["ja"] } // 必要に応じて言語ヒント
         });
         
         const texts = ocrResult.textAnnotations;
-        if (texts && texts.length > 0) {
-          console.log(`OCR successful for ${file.name}. Full text length: ${texts[0]?.description?.length}`);
-          // 5. 結果を整形
-          const parsedData = parseOcrResult(texts);
-          parsedData.sourceFileName = file.name; // 元ファイル名も記録
-          parsedData.driveFileLink = file.webViewLink || ''; // Driveへのリンク
-          allExtractedData.push(parsedData);
-        } else {
-          console.log(`No text found by OCR for ${file.name}`);
-          allExtractedData.push({
-              name: '', company: '', title: '', email: '', phone: '', address: '', website: '', 
-              notes: `OCRでテキスト抽出不可: ${file.name}`,
-              sourceFileName: file.name,
-              driveFileLink: file.webViewLink || ''
-          });
-        }
-
-        // TODO: 処理済みファイルをマークする (例: Driveでカスタムプロパティを設定、ファイル名を変更、別フォルダに移動など)
-        // この実装は複雑になるため、まずはリストアップとOCR、書き込みに注力
+        parsedDataResult = parseOcrResult(texts || []); // 空配列を渡す
 
       } catch (fileProcessingError: any) {
         console.error(`Error processing file ${file.name} (ID: ${file.id}):`, fileProcessingError.message);
-        allExtractedData.push({
-            name: '', company: '', title: '', email: '', phone: '', address: '', website: '',
-            notes: `ファイル処理エラー (${file.name}): ${fileProcessingError.message}`,
-            sourceFileName: file.name,
-            driveFileLink: file.webViewLink || ''
-        });
+        parsedDataResult = { textInfo: `ファイル処理エラー (${file.name}): ${fileProcessingError.message}`, userNotes: '' };
       }
-    } // end of for loop
+      
+      parsedDataResult.sourceFileName = file.name;
+      parsedDataResult.driveFileLink = file.webViewLink || '';
+      allExtractedData.push(parsedDataResult);
+    }
 
-    // 6. 整形したデータをSheets APIでスプレッドシートに書き込み
     if (allExtractedData.length > 0) {
-      const sheets = await getSheetsClient();
-      const sheetName = '名刺データ'; // 書き込むシート名
-      const headerRow = [ // 定義するヘッダー行
-        '氏名', '会社名', '役職', 'メールアドレス', '電話番号', 
-        '住所', 'ウェブサイト', 'メモ (OCR全文)', '元ファイル名', 
-        'Driveファイルリンク', '処理日時'
-      ];
-
-      // --- ヘッダー行の書き込みロジックここから ---
-      try {
-        // まずシートの既存データをA1セルから少量読み取ってみる (ヘッダーがあるか確認のため)
-        const getHeaderRes = await sheets.spreadsheets.values.get({
-          spreadsheetId: spreadsheetId,
-          range: `${sheetName}!A1:K1`, // ヘッダー行の範囲 (列数はヘッダーに合わせる)
-        });
-
-        let needsHeader = true;
-        if (getHeaderRes.data.values && getHeaderRes.data.values.length > 0) {
-          // A1セルに何かデータがあれば、ヘッダーは既に存在するとみなす (簡易的な判定)
-          // より厳密には、読み取った内容が定義したヘッダーと一致するか確認する
-          const existingHeader = getHeaderRes.data.values[0];
-          if (JSON.stringify(existingHeader) === JSON.stringify(headerRow)) {
-              needsHeader = false;
-              console.log('Header row already exists in the sheet.');
-          } else if (existingHeader.length > 0) {
-              console.log('Sheet is not empty, assuming header exists or different data format. Will not write new header.');
-              // ここで、もし既存ヘッダーが異なっていたらエラーにするか、上書きするかなどの判断も可能
-              // 今回は、何かデータがあれば新しいヘッダーは書き込まない方針
-              needsHeader = false; 
-          }
-        }
-
-        if (needsHeader) {
-          console.log('Writing header row to the sheet.');
-          await sheets.spreadsheets.values.update({ // updateでA1から書き込む (appendだと最終行になる)
-            spreadsheetId: spreadsheetId,
-            range: `${sheetName}!A1`, // ヘッダーを書き込む開始セル
-            valueInputOption: 'USER_ENTERED',
-            requestBody: {
-              values: [headerRow], // ヘッダー行は2次元配列で渡す
-            },
-          });
-        }
-      } catch (headerError: any) {
-        // getで範囲が存在しない場合 (シートが全くの空など) はエラーになることがある
-        if (headerError.code === 400 && headerError.message?.includes('Unable to parse range')) {
-          console.log('Sheet appears to be empty or range does not exist. Writing header row.');
-          // この場合もヘッダーを書き込む
-          await sheets.spreadsheets.values.update({
-            spreadsheetId: spreadsheetId,
-            range: `${sheetName}!A1`,
-            valueInputOption: 'USER_ENTERED',
-            requestBody: {
-              values: [headerRow],
-            },
-          });
-        } else {
-          // その他のヘッダー処理エラー
-          console.error('Error processing header row:', headerError.message);
-          // ヘッダー書き込みに失敗しても、データ書き込みは試行するかもしれないし、ここで処理を中断するかもしれない
-          // ここでは、エラーをログに出力し、データ書き込みに進む
-        }
-      }
-      // --- ヘッダー行の書き込みロジックここまで ---
-
-
       const valuesToWrite = allExtractedData.map(data => [
-        data.name,
-        data.company,
-        data.title,
-        data.email,
-        data.phone,
-        data.address,
-        data.website,
-        data.notes,
-        data.sourceFileName,
-        data.driveFileLink,
-        new Date().toISOString() // 処理日時
+        data.textInfo || '',    // 名刺情報 (OCR全文)
+        new Date().toISOString(), // 更新日
+        data.userNotes || '',   // メモ (今回は空)
+        // 元ファイル名とDriveリンクは今回はスプレッドシートに含めないが、
+        // デバッグや将来のために保持しておきたい場合はコメントアウトを解除
+        // data.sourceFileName || '',
+        // data.driveFileLink || '',
       ]);
 
-      // ヘッダーを書き込んだ後なので、データは常に追記 (append) で良い
       await sheets.spreadsheets.values.append({
         spreadsheetId: spreadsheetId,
-        range: `${sheetName}!A:K`, // A列からK列に追記
+        range: `'${sheetName}'!A:${String.fromCharCode(64 + expectedHeaderColumnCount)}`, 
         valueInputOption: 'USER_ENTERED',
-        requestBody: {
-          values: valuesToWrite,
-        },
+        requestBody: { values: valuesToWrite },
       });
       console.log(`${allExtractedData.length} records appended to Google Sheets.`);
       return NextResponse.json({ message: `${allExtractedData.length}件の名刺データが処理され、スプレッドシートに書き込まれました。`, results: allExtractedData }, { status: 200 });
     } else {
-      console.log('No data extracted to write to sheets.');
-      return NextResponse.json({ message: '抽出できるデータがありませんでした。' }, { status: 200 });
+      console.log('No data processed to write to sheets.');
+      return NextResponse.json({ message: '処理できるデータがありませんでした。ヘッダー行は確認・作成されました。' }, { status: 200 });
     }
 
   } catch (e: any) {

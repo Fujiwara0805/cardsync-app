@@ -13,6 +13,7 @@ import {
   HelpCircle,
   X,
   Bell,
+  UploadCloud
 } from 'lucide-react';
 import { useEffect } from 'react';
 
@@ -27,7 +28,7 @@ export default function DashboardSidebar({
 }: DashboardSidebarProps) {
   const primaryNavigation = [
     { name: '名刺一覧', icon: Contact, href: '/dashboard/cards' },
-    { name: 'Google Drive連携', icon: FolderSync, href: '/dashboard' },
+    { name: '画像アップロード・同期', icon: UploadCloud, href: '/dashboard/drive-sync' },
   ];
 
   const secondaryNavigation = [
