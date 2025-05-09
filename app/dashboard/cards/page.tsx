@@ -4,13 +4,14 @@ import { useState, useEffect, useMemo } from 'react'; // useState, useEffect, us
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input"; // Input をインポート
 import { AspectRatio } from "@/components/ui/aspect-ratio";
-import { Clock, FileText, Search, MessageSquareText, ImageOff } from 'lucide-react'; // Search, MessageSquareText, ImageOff をインポート
+import { Clock, FileText, Search, MessageSquareText, ImageOff, ChevronLeft, ChevronRight } from 'lucide-react'; // Search, MessageSquareText, ImageOff, ChevronLeft, ChevronRight をインポート
 // import { getDriveClient } from '@/lib/googleAuth'; // これはサーバーサイドでのみ使用される想定
 // import { getServerSession } from 'next-auth'; // クライアントコンポーネントでは使えない
 // import { authOptions } from '@/app/api/auth/[...nextauth]/route'; // 同上
 // import { supabase } from '@/lib/supabaseClient'; // 必要であればクライアントから呼べるように設定が必要
 import EmptyState from '@/components/dashboard/empty-state';
 import { Skeleton } from "@/components/ui/skeleton"; // スケルトンローディング用
+import { Button } from "@/components/ui/button"; // Button をインポート
 
 interface DriveFile {
   id: string;
@@ -89,12 +90,14 @@ function BusinessCardImageItem({ file }: { file: DriveFile }) {
   );
 }
 
+const ITEMS_PER_PAGE = 8; // 1ページあたりのアイテム数
 
 export default function BusinessCardsListPage() {
-  const [cardImages, setCardImages] = useState<DriveFile[]>([]);
+  const [allCardImages, setAllCardImages] = useState<DriveFile[]>([]); // 全データ
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     async function fetchData() {
@@ -126,11 +129,11 @@ export default function BusinessCardsListPage() {
           memo: memosMap[file.name] || undefined, // ファイル名でメモを検索
         }));
         
-        setCardImages(mergedData);
+        setAllCardImages(mergedData);
       } catch (err: any) {
         console.error("Error fetching card data:", err);
         setError(err.message || 'データの読み込み中にエラーが発生しました。');
-        setCardImages([]); // エラー時はデータを空にする
+        setAllCardImages([]); // エラー時はデータを空にする
       } finally {
         setIsLoading(false);
       }
@@ -139,13 +142,30 @@ export default function BusinessCardsListPage() {
   }, []);
 
   const filteredCardImages = useMemo(() => {
+    setCurrentPage(1); // 検索時は1ページ目に戻す
     if (!searchTerm) {
-      return cardImages;
+      return allCardImages;
     }
-    return cardImages.filter(file =>
+    return allCardImages.filter(file =>
       file.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [cardImages, searchTerm]);
+  }, [allCardImages, searchTerm]);
+
+  const totalPages = Math.ceil(filteredCardImages.length / ITEMS_PER_PAGE);
+  
+  const currentDisplayImages = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+    return filteredCardImages.slice(startIndex, endIndex);
+  }, [filteredCardImages, currentPage]);
+
+  const handlePreviousPage = () => {
+    setCurrentPage((prev) => Math.max(prev - 1, 1));
+  };
+
+  const handleNextPage = () => {
+    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+  };
 
   if (error) {
     return (
@@ -176,22 +196,47 @@ export default function BusinessCardsListPage() {
 
       {isLoading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-          {Array.from({ length: 8 }).map((_, index) => ( // 8個のスケルトンを表示
+          {Array.from({ length: ITEMS_PER_PAGE }).map((_, index) => ( // 8個のスケルトンを表示
             <CardSkeleton key={index} />
           ))}
         </div>
-      ) : filteredCardImages.length === 0 ? (
+      ) : currentDisplayImages.length === 0 ? (
         <EmptyState
           title={searchTerm ? "検索結果なし" : "名刺画像がありません"}
           description={searchTerm ? `「${searchTerm}」に一致する名刺は見つかりませんでした。` : "Google Driveの連携フォルダにJPEG形式の名刺画像をアップロードし、システムと同期してください。"}
           iconName={searchTerm ? "SearchX" : "ImageOff"}
         />
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-          {filteredCardImages.map((file) => (
-            <BusinessCardImageItem key={file.id} file={file} />
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+            {currentDisplayImages.map((file) => (
+              <BusinessCardImageItem key={file.id} file={file} />
+            ))}
+          </div>
+          {totalPages > 1 && (
+            <div className="mt-8 flex justify-center items-center space-x-4">
+              <Button 
+                onClick={handlePreviousPage} 
+                disabled={currentPage === 1}
+                variant="outline"
+              >
+                <ChevronLeft className="h-4 w-4 mr-1" />
+                前へ
+              </Button>
+              <span className="text-sm text-muted-foreground">
+                {currentPage} / {totalPages} ページ
+              </span>
+              <Button 
+                onClick={handleNextPage} 
+                disabled={currentPage === totalPages}
+                variant="outline"
+              >
+                次へ
+                <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
