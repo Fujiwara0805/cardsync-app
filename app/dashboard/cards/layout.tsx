@@ -37,7 +37,7 @@ export default function CardsDashboardLayout({ children }: { children: ReactNode
   } : undefined;
 
   return (
-    <div className="flex min-h-screen bg-background overflow-hidden">
+    <div className="flex min-h-screen bg-background">
       {/* サイドバーのオーバーレイ (スマホ表示時) */}
       <AnimatePresence>
         {isSidebarOpen && window.innerWidth < 1024 && (
@@ -62,8 +62,8 @@ export default function CardsDashboardLayout({ children }: { children: ReactNode
         setIsOpen={setIsSidebarOpen}
       />
       
-      {/* メインコンテンツエリア */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      {/* ヘッダーとメインコンテンツを束ねるコンテナ */}
+      <div className="flex-1 flex flex-col h-screen">
         <DashboardHeader 
           user={headerUser}
           onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} // スマホ時のメニューアイコンクリック
