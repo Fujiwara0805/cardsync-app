@@ -1,6 +1,5 @@
 import { Suspense } from 'react';
 import Dashboard from '@/components/dashboard/dashboard';
-import AuthProvider from '@/components/auth-provider';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {

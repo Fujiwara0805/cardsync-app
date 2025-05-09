@@ -1,7 +1,5 @@
-import { Suspense } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
-import Image from 'next/image'; // Next.jsのImageコンポーネントを利用
 import { Clock, FileText } from 'lucide-react';
 import { getDriveClient } from '@/lib/googleAuth'; // 仮の関数、後で実装
 import { getServerSession } from 'next-auth'; // セッション取得用
@@ -140,27 +138,3 @@ export default async function BusinessCardsListPage() {
   );
 }
 
-// ローディング表示 (オプション)
-// このページはサーバーコンポーネントなので、Next.js 13以降では
-// loading.tsx ファイルを同じディレクトリに置くことで自動的にSuspenseのフォールバックとして機能します。
-// app/dashboard/cards/loading.tsx
-/*
-export default function Loading() {
-  return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8 text-foreground">名刺一覧</h1>
-      <p className="text-muted-foreground">名刺画像を読み込んでいます...</p>
-      { // スケルトンローダーの例 (shadcn/ui の Skeleton を使うなど) }
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {[...Array(8)].map((_, i) => (
-          <div key={i} className="bg-card border rounded-lg p-4 space-y-3">
-            <div className="h-6 bg-muted rounded w-3/4"></div>
-            <div className="h-32 bg-muted rounded"></div>
-            <div className="h-4 bg-muted rounded w-1/2"></div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-*/
