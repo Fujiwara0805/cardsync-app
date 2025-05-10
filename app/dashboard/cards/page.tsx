@@ -4,13 +4,14 @@ import { useState, useEffect, useMemo, useCallback } from 'react'; // useState, 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input"; // Input をインポート
 import { AspectRatio } from "@/components/ui/aspect-ratio";
-import { Clock, FileText, Search, MessageSquareText, ImageOff, ChevronLeft, ChevronRight, Pencil } from 'lucide-react'; // Search, MessageSquareText, ImageOff, ChevronLeft, ChevronRight, Pencil をインポート
+import { Clock, FileText, Search, MessageSquareText, ImageOff, ChevronLeft, ChevronRight, Pencil, Loader2 } from 'lucide-react'; // Search, MessageSquareText, ImageOff, ChevronLeft, ChevronRight, Pencil, Loader2 をインポート
 import EmptyState from '@/components/dashboard/empty-state';
 import { Skeleton } from "@/components/ui/skeleton"; // スケルトンローディング用
 import { Button } from "@/components/ui/button"; // Button をインポート
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog"; // Dialog関連をインポート
 import { Label } from "@/components/ui/label"; // Labelをインポート
 import { Textarea } from "@/components/ui/textarea"; // Textareaをインポート
+import { ToastNotification, type NotificationType as ToastType } from '@/components/ui/toast-notification'; // MODIFIED: Corrected import for ToastNotification and its type
 
 interface DriveFile {
   id: string;
@@ -125,6 +126,18 @@ export default function BusinessCardsListPage() {
   const [isSaving, setIsSaving] = useState(false);
   // -------------------------
 
+  // --- トースト通知用 State ---
+  const [notification, setNotification] = useState<{isOpen: boolean; message: string; type: ToastType}>({
+    isOpen: false,
+    message: '',
+    type: 'info',
+  });
+
+  const showNotification = (message: string, type: ToastType) => {
+    setNotification({ isOpen: true, message, type });
+  };
+  // ----------------------------
+
   const fetchCardData = useCallback(async () => { // useCallbackでラップ
     setIsLoading(true);
     setError(null);
@@ -210,7 +223,7 @@ export default function BusinessCardsListPage() {
 
   const handleSaveChanges = async () => {
     if (!editingFile) return;
-    setIsSaving(true);
+    setIsSaving(true); // ボタンのdisabled状態を制御するために残す
     setError(null);
     try {
       const response = await fetch('/api/update-card-info', {
@@ -227,18 +240,27 @@ export default function BusinessCardsListPage() {
         const errorData = await response.json();
         throw new Error(errorData.error || '情報の更新に失敗しました。');
       }
-      // 成功した場合、リストを再読み込みするか、ローカルステートを更新
-      await fetchCardData(); // 簡単なのは再取得
+      await fetchCardData(); 
+      showNotification('名刺情報を更新しました。', 'success'); // トースト表示
       handleEditModalClose();
     } catch (err: any) {
       console.error("Error updating card info:", err);
       setError(err.message || '更新処理中にエラーが発生しました。');
-      // エラー時もモーダルを閉じないか、ユーザーに通知
+      showNotification(err.message || '更新処理中にエラーが発生しました。', 'error'); // エラー時もトースト表示
     } finally {
       setIsSaving(false);
     }
   };
   // ----------------------------
+
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 flex flex-col items-center justify-center bg-gray-100 z-50">
+        <Loader2 className="h-12 w-12 text-blue-700 animate-spin mb-4" />
+        <span className="text-blue-700 text-lg font-bold">名刺画像を読み込み中...</span>
+      </div>
+    );
+  }
 
   if (error && !isEditModalOpen) { // モーダル表示中はメインのエラー表示をしない
     return (
@@ -263,11 +285,7 @@ export default function BusinessCardsListPage() {
         </div>
       </div>
 
-      {isLoading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-          {Array.from({ length: ITEMS_PER_PAGE }).map((_, index) => <CardSkeleton key={index} />)}
-        </div>
-      ) : currentDisplayImages.length === 0 ? (
+      {currentDisplayImages.length === 0 ? (
         <EmptyState
           title={searchTerm ? "検索結果なし" : "名刺画像がありません"}
           description={searchTerm ? `「${searchTerm}」に一致する名刺は見つかりませんでした。` : "Google Driveの連携フォルダにJPEG形式の名刺画像をアップロードし、システムと同期してください。"}
@@ -329,18 +347,25 @@ export default function BusinessCardsListPage() {
                   <p className="col-span-4 text-sm text-red-600 text-center">{error}</p>
               )}
             </div>
-            <DialogFooter>
+            <DialogFooter className="sm:justify-between"> {/* スマホ表示でボタンが縦並びになるのを防ぐためにsm:justify-betweenを追加 */}
               <DialogClose asChild>
-                <Button type="button" variant="outline" disabled={isSaving}>キャンセル</Button>
+                <Button type="button" variant="outline" disabled={isSaving} size="sm">キャンセル</Button>
               </DialogClose>
-              <Button type="button" onClick={handleSaveChanges} disabled={isSaving}>
-                {isSaving ? '保存中...' : '変更を保存'}
+              <Button type="button" onClick={handleSaveChanges} disabled={isSaving} size="sm">
+                {/* ローディングスピナーとテキスト変更を削除 */}
+                変更を保存
               </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
       )}
       {/* ------------------ */}
+      <ToastNotification
+        isOpen={notification.isOpen}
+        message={notification.message}
+        type={notification.type}
+        onClose={() => setNotification({ ...notification, isOpen: false })}
+      />
     </div>
   );
 }
