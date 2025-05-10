@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from "next-auth/next";
-import { nextAuthConfiguration } from "@/app/api/auth/[...nextauth]/route"; // パスを確認
+import { nextAuthConfiguration } from "@/lib/authConfig"; // パスを確認
 import { supabase } from '@/lib/supabaseClient';
 import { getDriveClient, getSheetsClient, getVisionClient } from '@/lib/googleAuth'; // Visionクライアントも追加
 import { google } from 'googleapis'; // googleオブジェクトも使う可能性があるのでインポート

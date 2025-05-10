@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from "next-auth/next";
-import { nextAuthConfiguration } from "@/app/api/auth/[...nextauth]/route"; // パスを確認
+import { nextAuthConfiguration } from "@/lib/authConfig"; // パスを確認
 import { getDriveClient } from '@/lib/googleAuth';
 
 export async function POST(request: Request) {

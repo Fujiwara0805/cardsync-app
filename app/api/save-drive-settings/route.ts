@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth/next";
 // authOptionsのパスは、実際のプロジェクト構造に合わせて修正してください。
 // 通常は app/api/auth/[...nextauth]/route.ts または pages/api/auth/[...nextauth].ts にあります。
 // ここでは仮に @/app/api/auth/[...nextauth]/route としています。
-import { nextAuthConfiguration } from "@/app/api/auth/[...nextauth]/route"; 
+import { nextAuthConfiguration } from "@/lib/authConfig"; 
 import { supabase } from '@/lib/supabaseClient'; 
 
 export async function POST(request: Request) {

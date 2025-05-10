@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from "next-auth/next";
-import { nextAuthConfiguration } from "@/app/api/auth/[...nextauth]/route"; // パスを確認
+import { nextAuthConfiguration } from "@/lib/authConfig"; // パスを確認
 import { supabase } from '@/lib/supabaseClient';
 
 export async function GET(request: Request) { // 設定取得なのでGETメソッド

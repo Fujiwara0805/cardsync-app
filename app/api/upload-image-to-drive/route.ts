@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from "next-auth/next";
-import { nextAuthConfiguration } from "@/app/api/auth/[...nextauth]/route";
+import { nextAuthConfiguration } from "@/lib/authConfig";
 import { supabase } from '@/lib/supabaseClient';
+
 import { Readable } from 'stream';
 import { google } from 'googleapis';
 
