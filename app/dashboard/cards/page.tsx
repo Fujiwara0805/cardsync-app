@@ -18,8 +18,9 @@ interface DriveFile {
   name: string;
   thumbnailLink?: string;
   webViewLink?: string;
-  modifiedTime?: string;
-  memo?: string; // メモ情報を追加
+  modifiedTime?: string; // Driveの更新日時
+  memo?: string;
+  sheetModifiedDate?: string; // スプレッドシートの更新日時 (NEW)
 }
 
 // ローディング表示用のスケルトンカード
@@ -42,9 +43,15 @@ function CardSkeleton() {
 }
 
 function BusinessCardImageItem({ file, onEdit }: { file: DriveFile; onEdit: (file: DriveFile) => void; }) {
-  const displayDate = file.modifiedTime ? new Date(file.modifiedTime).toLocaleDateString('ja-JP', {
-    year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
-  }) : '日時不明';
+  const displayDate = file.sheetModifiedDate 
+    ? new Date(file.sheetModifiedDate).toLocaleDateString('ja-JP', {
+        year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+      }) 
+    : (file.modifiedTime 
+        ? new Date(file.modifiedTime).toLocaleDateString('ja-JP', {
+            year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+          }) 
+        : '日時不明');
 
   const [imageError, setImageError] = useState(false);
 
@@ -138,7 +145,7 @@ export default function BusinessCardsListPage() {
   };
   // ----------------------------
 
-  const fetchCardData = useCallback(async () => { // useCallbackでラップ
+  const fetchCardData = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
@@ -150,22 +157,28 @@ export default function BusinessCardsListPage() {
       const driveFilesData = await driveFilesResponse.json();
       const driveFiles: DriveFile[] = driveFilesData.files || [];
 
-      const memosResponse = await fetch('/api/get-sheet-memos');
-      if (!memosResponse.ok) {
-        const errorData = await memosResponse.json();
-        throw new Error(errorData.error || 'メモ情報の取得に失敗しました。');
+      // APIのレスポンス形式変更に合わせて修正
+      const cardInfoResponse = await fetch('/api/get-sheet-memos');
+      if (!cardInfoResponse.ok) {
+        const errorData = await cardInfoResponse.json();
+        throw new Error(errorData.error || 'スプレッドシート情報の取得に失敗しました。');
       }
-      const memosData = await memosResponse.json();
-      const memosMap: Record<string, string> = memosData.memosMap || {};
+      const cardInfoData = await cardInfoResponse.json();
+      // cardInfoMap を受け取るように変更
+      const cardInfoMap: Record<string, { memo: string; sheetModifiedDate: string }> = cardInfoData.cardInfoMap || {};
 
-      const mergedData = driveFiles.map(file => ({
-        ...file,
-        memo: memosMap[file.name] || '', // メモがない場合は空文字に
-      })).sort((a, b) => { // modifiedTimeで降順ソート
-        if (a.modifiedTime && b.modifiedTime) {
-          return new Date(b.modifiedTime).getTime() - new Date(a.modifiedTime).getTime();
-        }
-        return 0;
+      const mergedData = driveFiles.map(file => {
+        const info = cardInfoMap[file.name];
+        return {
+          ...file,
+          memo: info?.memo || '',
+          sheetModifiedDate: info?.sheetModifiedDate || '', // スプレッドシートの更新日時をマージ
+        };
+      }).sort((a, b) => {
+        // ソート順もスプレッドシートの更新日を優先、なければDriveの更新日
+        const dateA = a.sheetModifiedDate ? new Date(a.sheetModifiedDate).getTime() : (a.modifiedTime ? new Date(a.modifiedTime).getTime() : 0);
+        const dateB = b.sheetModifiedDate ? new Date(b.sheetModifiedDate).getTime() : (b.modifiedTime ? new Date(b.modifiedTime).getTime() : 0);
+        return dateB - dateA; // 降順ソート
       });
       
       setAllCardImages(mergedData);
@@ -176,7 +189,7 @@ export default function BusinessCardsListPage() {
     } finally {
       setIsLoading(false);
     }
-  }, []); // 依存配列は空
+  }, []);
 
   useEffect(() => {
     fetchCardData();

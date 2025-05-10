@@ -23,19 +23,17 @@ export async function GET(request: Request) {
     
     const spreadsheetId = userSettings.google_spreadsheet_id;
     const sheets = await getSheetsClient();
-    const sheetName = '名刺管理データベース'; // process-cards と同じシート名
+    const sheetName = '名刺管理データベース'; 
     
-    // ヘッダー行を読み取り、"ファイル名" と "メモ" の列インデックスを特定
-    // 簡単のため、ファイル名はD列(インデックス3)、メモはC列(インデックス2)と仮定します。
-    // より堅牢にするには、ヘッダーを読み取って動的にインデックスを見つける処理が必要です。
-    // 今回はファイル名がD列、メモがC列という前提で進めます。
-    // process-cards のヘッダー: ['名刺情報', '更新日', 'メモ', 'ファイル名']
-    const fileNameColumn = 'D'; // ファイル名
-    const memoColumn = 'C';     // メモ
+    // ヘッダー行を元に列インデックスを決定するのが望ましいが、ここでは固定値とする
+    // process-cards のヘッダー: ['名刺情報', '更新日', 'メモ', 'ファイル名', 'File ID']
+    // これに基づくと、以下のインデックスになる (0始まり)
+    const UPDATE_DATE_INDEX = 1; // 更新日
+    const MEMO_INDEX = 2;        // メモ
+    const FILE_NAME_INDEX = 3;   // ファイル名
     
-    // A列からD列までのデータを取得 (ヘッダー行を含む可能性がある)
-    // 範囲を広めに取っておき、必要な列だけを後で処理します。
-    const range = `'${sheetName}'!A:D`; 
+    // File IDまで読み込むために範囲をE列まで拡張
+    const range = `\'${sheetName}\'!A:E`; 
 
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId,
@@ -44,30 +42,31 @@ export async function GET(request: Request) {
 
     const rows = response.data.values;
     if (!rows || rows.length === 0) {
-      return NextResponse.json({ memos: [] }, { status: 200 });
+      // memosMap の代わりに cardInfoMap のような名前にして空のオブジェクトを返す
+      return NextResponse.json({ cardInfoMap: {} }, { status: 200 });
     }
 
-    // ヘッダー行 ['名刺情報', '更新日', 'メモ', 'ファイル名'] と仮定
-    // 実際のファイル名列インデックス: 3 (0始まり)
-    // 実際のメモ列インデックス: 2 (0始まり)
-    const FILE_NAME_INDEX = 3; 
-    const MEMO_INDEX = 2;
-
-    const memosMap: Record<string, string> = {};
+    const cardInfoMap: Record<string, { memo: string; sheetModifiedDate: string }> = {};
     // 最初の行がヘッダーであると仮定してスキップ (i=1 から開始)
     for (let i = 1; i < rows.length; i++) {
       const row = rows[i];
       const fileName = row[FILE_NAME_INDEX];
       const memo = row[MEMO_INDEX];
-      if (fileName && typeof fileName === 'string') { // ファイル名が存在し、文字列であること
-        memosMap[fileName] = memo || ''; // メモがundefinedなら空文字
+      const sheetModifiedDate = row[UPDATE_DATE_INDEX];
+
+      if (fileName && typeof fileName === 'string') {
+        cardInfoMap[fileName] = {
+          memo: memo || '',
+          sheetModifiedDate: sheetModifiedDate || '' // 更新日がundefinedなら空文字
+        };
       }
     }
     
-    return NextResponse.json({ memosMap }, { status: 200 });
+    // memosMap を cardInfoMap に変更
+    return NextResponse.json({ cardInfoMap }, { status: 200 });
 
   } catch (error: any) {
-    console.error('Error fetching sheet memos:', error);
-    return NextResponse.json({ error: 'メモの取得中にエラーが発生しました。', details: error.message }, { status: 500 });
+    console.error('Error fetching sheet card info:', error); // エラーメッセージ修正
+    return NextResponse.json({ error: '名刺情報の取得中にエラーが発生しました。', details: error.message }, { status: 500 }); // エラーメッセージ修正
   }
 }

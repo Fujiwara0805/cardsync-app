@@ -22,7 +22,7 @@ async function getGoogleClients(session: any) {
 async function getUserDriveSettings(userId: string) {
   const { data, error } = await supabase
     .from('user_drive_settings') 
-    .select('google_spreadsheet_id, google_folder_id') // 'sheet_name' を select から削除
+    .select('google_spreadsheet_id, google_folder_id')
     .eq('user_id', userId) 
     .single();
 
@@ -41,7 +41,7 @@ async function getUserDriveSettings(userId: string) {
   return {
     spreadsheetId: data.google_spreadsheet_id,
     folderId: data.google_folder_id,
-    sheetName: '名刺管理データベース' // 固定値を使用
+    sheetName: '名刺管理データベース' 
   };
 }
 
@@ -60,9 +60,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "必要な情報（fileId, newName, newMemo）が不足しています。" }, { status: 400 });
     }
 
-    const userSettings = await getUserDriveSettings(userId); // ここで修正された関数が呼ばれる
+    const userSettings = await getUserDriveSettings(userId); 
     const spreadsheetId = userSettings.spreadsheetId;
-    const sheetName = userSettings.sheetName; // '名刺管理データベース' が入る
+    const sheetName = userSettings.sheetName; 
 
     const { drive, sheets } = await getGoogleClients(session);
 
@@ -79,7 +79,7 @@ export async function POST(request: Request) {
                 fileId: fileId,
                 requestBody: { name: newName },
             });
-            console.log(`Drive file name updated for ${fileId} to "${newName}"`);
+            console.log(`Drive file name updated for ${fileId} to \"${newName}\"`);
         }
     } catch (driveError: any) {
         console.warn(`Could not update Drive file name for ${fileId}:`, driveError.message);
@@ -88,7 +88,7 @@ export async function POST(request: Request) {
     // 2. スプレッドシートの情報を更新
     const getValuesResponse = await sheets.spreadsheets.values.get({
         spreadsheetId,
-        range: `${sheetName}!A:Z`, // sheetName は '名刺管理データベース'
+        range: `${sheetName}!A:Z`, 
     });
     const rows = getValuesResponse.data.values;
 
@@ -134,7 +134,7 @@ export async function POST(request: Request) {
     
     valuesToUpdate.push({
         range: `${sheetName}!${String.fromCharCode(65 + updatedTimeColumnIndex)}${targetRowIndex}`,
-        values: [[new Date().toLocaleString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })]],
+        values: [[new Date().toISOString()]],
     });
     
     if (valuesToUpdate.length > 0) {
