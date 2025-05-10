@@ -6,6 +6,7 @@ import { Zap } from 'lucide-react';
 
 interface SplashScreenProps {
   onFinished: () => void;
+  onComplete?: () => void;
 }
 
 export default function SplashScreen({ onFinished }: SplashScreenProps) {
