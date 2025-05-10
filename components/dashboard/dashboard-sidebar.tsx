@@ -131,12 +131,12 @@ export default function DashboardSidebar({
                   <Button
                     key={item.name}
                     variant={isActive ? "secondary" : "ghost"}
-                    className="w-full justify-start h-10 text-muted-foreground hover:text-foreground hover:bg-accent"
+                    className="w-full justify-start h-10"
                     asChild
                   >
                     <Link href={item.href} onClick={() => handleLinkClick(item.href)}>
-                      <item.icon className={cn("h-5 w-5 mr-3", isActive ? "" : "text-muted-foreground group-hover:text-foreground")} />
-                      <span className={cn(isActive ? "" : "group-hover:text-foreground")}>{item.name}</span>
+                      <item.icon className={cn("h-5 w-5 mr-3", isActive ? "text-secondary-foreground" : "text-muted-foreground group-hover:text-foreground")} />
+                      <span className={cn(isActive ? "text-secondary-foreground" : "text-muted-foreground group-hover:text-foreground")}>{item.name}</span>
                     </Link>
                   </Button>
                 );

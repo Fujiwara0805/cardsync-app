@@ -273,7 +273,7 @@ export default function BusinessCardsListPage() {
     return (
       <div className="fixed inset-0 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm z-50">
         <Loader2 className="h-12 w-12 text-primary animate-spin mb-4" />
-        <p className="text-lg font-semibold text-primary">名刺画像を読み込み中...</p>
+        <p className="text-lg font-semibold text-primary">名刺情報を読み込み中...</p>
       </div>
     );
   }

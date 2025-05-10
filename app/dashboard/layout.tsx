@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { usePathname } from 'next/navigation';
 import DashboardHeader from '@/components/dashboard/dashboard-header';
 import DashboardSidebar from '@/components/dashboard/dashboard-sidebar';
-import { ListChecks, UploadCloud } from 'lucide-react';
+import { ListChecks, UploadCloud, Home, Cog } from 'lucide-react';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react'; // セッション情報をクライアントサイドで取得
 import { type Session } from 'next-auth'; // Session 型を明示的にインポート
@@ -49,6 +49,15 @@ export default function DashboardAppLayout({ children }: { children: ReactNode }
   } else if (pathname === '/dashboard/settings') {
     pageTitle = "設定";
   }
+
+  // ナビゲーションアイテムの定義 (アニメーションやスタイル適用のため)
+  const navItems = [
+    { href: "/dashboard/cards", label: "名刺一覧", icon: ListChecks },
+    { href: "/dashboard/image-upload", label: "アップロード", icon: UploadCloud },
+    // 必要に応じて他のナビゲーションアイテムを追加
+    // { href: "/dashboard", label: "ホーム", icon: Home },
+    // { href: "/dashboard/settings", label: "設定", icon: Cog },
+  ];
 
   if (status === "loading") {
     // セッション読み込み中の表示を共通ローディングインジケータに変更
@@ -99,25 +108,33 @@ export default function DashboardAppLayout({ children }: { children: ReactNode }
       </div>
 
       {/* モバイル用下部ナビゲーション */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-primary border-t border-primary-foreground/20 flex justify-around py-2 z-30 text-primary-foreground">
-        <Link
-          href="/dashboard/cards"
-          className={`flex flex-col items-center p-2 rounded-md hover:bg-primary-foreground/10 active:bg-primary-foreground/30 w-1/2 ${
-            pathname === '/dashboard/cards' ? 'bg-primary-foreground/20' : ''
-          }`}
-        >
-          <ListChecks className="h-6 w-6" />
-          <span className="text-xs mt-1">名刺一覧</span>
-        </Link>
-        <Link
-          href="/dashboard/image-upload"
-          className={`flex flex-col items-center p-2 rounded-md hover:bg-primary-foreground/10 active:bg-primary-foreground/30 w-1/2 ${
-            pathname === '/dashboard/image-upload' ? 'bg-primary-foreground/20' : ''
-          }`}
-        >
-          <UploadCloud className="h-6 w-6" />
-          <span className="text-xs mt-1">アップロード</span>
-        </Link>
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-muted border-t border-border flex justify-around items-center h-16 z-30 shadow-md"> {/* MODIFIED: shadow- ऊपर を shadow-md に変更 */}
+        {navItems.map((item) => {
+          const isActive = pathname === item.href;
+          return (
+            <Link href={item.href} key={item.href} className="flex-1 h-full">
+              <motion.div
+                className={`flex flex-col items-center justify-center h-full rounded-md transition-colors duration-200 ease-in-out
+                            ${isActive 
+                              ? 'bg-primary text-primary-foreground' // Shadcn/UIのprimaryカラーと前景を使用
+                              : 'text-muted-foreground hover:bg-primary/10 hover:text-primary active:bg-primary/20'
+                            }`}
+                whileTap={{ scale: 0.95 }} 
+              >
+                <motion.div
+                  animate={{ scale: isActive ? 1.15 : 1 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 15 }}
+                >
+                  {/* アイコンの色は親要素の text 色を継承するので、個別の色指定は不要になることが多い */}
+                  <item.icon className="h-6 w-6" /> 
+                </motion.div>
+                <span className="text-xs mt-1">
+                  {item.label}
+                </span>
+              </motion.div>
+            </Link>
+          );
+        })}
       </div>
     </div>
   );
