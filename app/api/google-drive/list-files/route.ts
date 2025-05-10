@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route"; // パスを確認
+import { nextAuthConfiguration } from "@/app/api/auth/[...nextauth]/route"; // パスを確認
 import { getDriveClient } from '@/lib/googleAuth'; // 作成した認証ユーティリティ
 import { supabase } from '@/lib/supabaseClient'; // Supabaseクライアント
 
 export async function POST(request: Request) {
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession(nextAuthConfiguration);
   if (!session?.user?.id) {
     return NextResponse.json({ error: '認証されていません。' }, { status: 401 });
   }

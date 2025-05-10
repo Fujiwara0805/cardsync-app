@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route"; // パスを確認
+import { nextAuthConfiguration } from "@/app/api/auth/[...nextauth]/route"; // パスを確認
 import { supabase } from '@/lib/supabaseClient';
 
 export async function GET(request: Request) { // 設定取得なのでGETメソッド
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession(nextAuthConfiguration);
 
   if (!session?.user?.id) {
     return NextResponse.json({ error: '認証されていません。' }, { status: 401 });

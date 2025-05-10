@@ -1,13 +1,12 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { nextAuthConfiguration } from "@/app/api/auth/[...nextauth]/route";
 import { supabase } from '@/lib/supabaseClient';
-import { getDriveClient } from '@/lib/googleAuth';
 import { Readable } from 'stream';
 import { google } from 'googleapis';
 
 export async function POST(request: Request) {
-  const session = await getServerSession(authOptions) as any;
+  const session = await getServerSession(nextAuthConfiguration) as any;
   if (!session || !session.accessToken) {
     return NextResponse.json({ error: '認証されていません、またはアクセストークンがありません。' }, { status: 401 });
   }
