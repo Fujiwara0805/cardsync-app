@@ -35,7 +35,7 @@ export default function DashboardSidebar({
   const primaryNavigation = [
     { name: 'Google連携', icon: LayoutDashboard, href: '/dashboard' },
     { name: '名刺一覧', icon: Contact, href: '/dashboard/cards' },
-    { name: '画像アップロード', icon: UploadCloud, href: '/dashboard/drive-sync' },
+    { name: '画像アップロード', icon: UploadCloud, href: '/dashboard/image-upload' },
   ];
 
   const secondaryNavigation = [

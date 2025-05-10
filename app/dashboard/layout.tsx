@@ -110,9 +110,9 @@ export default function DashboardAppLayout({ children }: { children: ReactNode }
           <span className="text-xs mt-1">名刺一覧</span>
         </Link>
         <Link
-          href="/dashboard/drive-sync"
+          href="/dashboard/image-upload"
           className={`flex flex-col items-center p-2 rounded-md hover:bg-primary-foreground/10 active:bg-primary-foreground/30 w-1/2 ${
-            pathname === '/dashboard/drive-sync' ? 'bg-primary-foreground/20' : ''
+            pathname === '/dashboard/image-upload' ? 'bg-primary-foreground/20' : ''
           }`}
         >
           <UploadCloud className="h-6 w-6" />

@@ -96,7 +96,13 @@ export default function LandingPage() {
                 </Button>
               </div>
             ) : (
-              <Button variant="outline" size="sm" onClick={handleSignIn} disabled={isLoading} className="text-sm border-primary-foreground/50 text-primary-foreground hover:bg-primary-foreground/10">
+              <Button 
+                variant="outline"
+                size="sm" 
+                onClick={handleSignIn} 
+                disabled={isLoading} 
+                className="text-sm font-semibold text-blue-600 border-blue-600 hover:bg-blue-600 hover:text-white dark:text-blue-400 dark:border-blue-400 dark:hover:bg-blue-400 dark:hover:text-gray-900"
+              >
                 {isLoading ? 'ログイン中...' : 'ログイン'}
               </Button>
             )}
