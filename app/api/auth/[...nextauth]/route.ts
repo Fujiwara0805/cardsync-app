@@ -15,8 +15,9 @@ export const authOptions: NextAuthOptions = {
             // "openid",
             "https://www.googleapis.com/auth/userinfo.email",
             "https://www.googleapis.com/auth/userinfo.profile",
-            "https://www.googleapis.com/auth/drive.file", // 一旦コメントアウトまたは削除
+            "https://www.googleapis.com/auth/drive.file",
             // "https://www.googleapis.com/auth/drive",      // こちらの広範なスコープを試す
+            "https://www.googleapis.com/auth/spreadsheets"
           ].join(" "),
         },
       },
