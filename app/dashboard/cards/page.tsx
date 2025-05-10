@@ -223,7 +223,7 @@ export default function BusinessCardsListPage() {
 
   const handleSaveChanges = async () => {
     if (!editingFile) return;
-    setIsSaving(true); // ボタンのdisabled状態を制御するために残す
+    setIsSaving(true);
     setError(null);
     try {
       const response = await fetch('/api/update-card-info', {
@@ -231,7 +231,7 @@ export default function BusinessCardsListPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           fileId: editingFile.id,
-          originalFileName: editingFile.name, // スプレッドシート検索用
+          originalFileName: editingFile.name, 
           newName: editedFileName,
           newMemo: editedMemo,
         }),
@@ -241,11 +241,11 @@ export default function BusinessCardsListPage() {
         throw new Error(errorData.error || '情報の更新に失敗しました。');
       }
       await fetchCardData(); 
+      handleEditModalClose(); // モーダルを閉じるのを先に行う
       showNotification('名刺情報を更新しました。', 'success'); // トースト表示
-      handleEditModalClose();
     } catch (err: any) {
       console.error("Error updating card info:", err);
-      setError(err.message || '更新処理中にエラーが発生しました。');
+      // setError(err.message || '更新処理中にエラーが発生しました。'); // モーダルが閉じるのでモーダル内エラー表示は不要かも
       showNotification(err.message || '更新処理中にエラーが発生しました。', 'error'); // エラー時もトースト表示
     } finally {
       setIsSaving(false);
@@ -253,11 +253,14 @@ export default function BusinessCardsListPage() {
   };
   // ----------------------------
 
-  if (isLoading) {
+  if (isLoading) { // このローディングはページ全体の初期読み込み用
+    // ヘッダー・フッターを共通レイアウトで表示している場合、
+    // ここではコンテンツエリアのみのローディング表示（例：スケルトン表示）にすると良いでしょう。
+    // 現在は画面全体を覆うローディングです。
     return (
-      <div className="fixed inset-0 flex flex-col items-center justify-center bg-gray-100 z-50">
-        <Loader2 className="h-12 w-12 text-blue-700 animate-spin mb-4" />
-        <span className="text-blue-700 text-lg font-bold">名刺画像を読み込み中...</span>
+      <div className="fixed inset-0 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm z-50">
+        <Loader2 className="h-12 w-12 text-primary animate-spin mb-4" />
+        <p className="text-lg font-semibold text-primary">名刺画像を読み込み中...</p>
       </div>
     );
   }
@@ -333,8 +336,8 @@ export default function BusinessCardsListPage() {
                   disabled={isSaving}
                 />
               </div>
-              <div className="grid grid-cols-4 items-start gap-4"> {/* items-start for textarea alignment */}
-                <Label htmlFor="memo" className="text-right pt-2">メモ</Label> {/* pt-2 for alignment */}
+              <div className="grid grid-cols-4 items-start gap-4">
+                <Label htmlFor="memo" className="text-right pt-2">メモ</Label>
                 <Textarea 
                   id="memo" 
                   value={editedMemo} 
@@ -343,17 +346,23 @@ export default function BusinessCardsListPage() {
                   disabled={isSaving}
                 />
               </div>
-              {error && isEditModalOpen && ( // モーダル内でのエラー表示
+              {error && isEditModalOpen && ( // モーダル内エラーは残すが、更新成功時はモーダルが閉じるので表示されない
                   <p className="col-span-4 text-sm text-red-600 text-center">{error}</p>
               )}
             </div>
-            <DialogFooter className="sm:justify-between"> {/* スマホ表示でボタンが縦並びになるのを防ぐためにsm:justify-betweenを追加 */}
+            <DialogFooter className="flex flex-row justify-end gap-2"> {/* flex-row と justify-end で右寄せ横並び、gapで間隔 */}
               <DialogClose asChild>
                 <Button type="button" variant="outline" disabled={isSaving} size="sm">キャンセル</Button>
               </DialogClose>
-              <Button type="button" onClick={handleSaveChanges} disabled={isSaving} size="sm">
-                {/* ローディングスピナーとテキスト変更を削除 */}
-                変更を保存
+              <Button type="button" onClick={handleSaveChanges} disabled={isSaving || !editedFileName.trim()} size="sm">
+                {isSaving ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    処理中...
+                  </>
+                ) : (
+                  '更新' // 名称を「更新」に変更
+                )}
               </Button>
             </DialogFooter>
           </DialogContent>
