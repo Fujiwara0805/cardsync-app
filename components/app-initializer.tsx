@@ -16,9 +16,14 @@ export default function AppInitializer({ children }: { children: React.ReactNode
     }
   }, []);
 
+  if (typeof window === 'undefined') {
+    // サーバーサイドでは何も表示しないか、ローディングスケルトンを表示
+    return null; 
+  }
+
   return (
     <>
-      {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
+      {showSplash && <SplashScreen onFinished={() => setShowSplash(false)} />}
       {!showSplash && children}
     </>
   );
