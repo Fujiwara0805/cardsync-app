@@ -195,6 +195,48 @@ export default function LandingPage() {
           </div>
         </section>
 
+        {/* データ利用に関する説明セクション */}
+        <section className="py-16 md:py-20 px-4">
+          <div className="container mx-auto">
+            <div className="max-w-3xl mx-auto text-center mb-12 sm:mb-16">
+              <h2 className="text-3xl sm:text-4xl font-bold text-foreground">
+                お客様のデータ利用について
+              </h2>
+              <p className="mt-4 sm:mt-5 text-lg sm:text-xl text-muted-foreground">
+                CardSyncは、サービスの提供と向上のために、お客様のGoogleアカウント情報へアクセスします。
+              </p>
+            </div>
+            <div className="bg-card rounded-xl p-6 sm:p-8 shadow-lg max-w-4xl mx-auto">
+              <p className="text-base sm:text-lg text-muted-foreground mb-6">
+                本アプリケーションでは、以下のGoogleユーザーデータへのアクセス権限をリクエストします。これらの権限は、CardSyncの主要機能を提供し、お客様の利便性を高めるために不可欠なものです。
+              </p>
+              <ul className="space-y-4 mb-6">
+                <li className="flex items-start">
+                  <Cloud className="h-6 w-6 text-primary mr-3 mt-1 flex-shrink-0" />
+                  <div>
+                    <h4 className="font-semibold text-foreground text-lg">Google Driveのファイルへのアクセス</h4>
+                    <p className="text-muted-foreground text-sm sm:text-base">
+                      お客様がアップロードした名刺画像をGoogle Driveに安全に保存し、アプリケーション内で表示・処理するために使用します。これには、ファイルの読み取り、作成、編集の権限が含まれる場合があります。
+                    </p>
+                  </div>
+                </li>
+                <li className="flex items-start">
+                  <Database className="h-6 w-6 text-primary mr-3 mt-1 flex-shrink-0" />
+                  <div>
+                    <h4 className="font-semibold text-foreground text-lg">Googleスプレッドシートへのアクセス</h4>
+                    <p className="text-muted-foreground text-sm sm:text-base">
+                      OCR処理によって名刺から抽出された情報を、お客様の指定するGoogleスプレッドシートに記録・整理するために使用します。これにより、データの管理と活用が容易になります。
+                    </p>
+                  </div>
+                </li>
+              </ul>
+              <p className="text-sm text-muted-foreground">
+                取得したデータは、上記の明示された目的以外で利用されることは一切ありません。お客様のプライバシー保護を最優先に考え、データの取り扱いには最大限の注意を払っています。詳細については、当社のプライバシーポリシーをご確認ください。
+              </p>
+            </div>
+          </div>
+        </section>
+
         {/* CTAセクション */}
         <section className="py-16 sm:py-24 px-4">
           <div className="container mx-auto">
@@ -221,14 +263,19 @@ export default function LandingPage() {
 
       <footer className="bg-primary text-primary-foreground py-8 sm:py-10 px-4">
         <div className="container mx-auto">
-          <div className="flex flex-col md:flex-row justify-between items-center">
+          <div className="flex flex-col md:flex-row justify-between items-center text-center md:text-left">
             <div className="flex items-center space-x-2 mb-4 md:mb-0">
               <Cloud className="h-5 w-5 sm:h-6 sm:w-6 text-primary-foreground" />
               <span className="text-lg sm:text-xl font-bold text-primary-foreground">CardSync</span>
             </div>
-            <p className="text-xs sm:text-sm text-primary-foreground/70">
-              © {new Date().getFullYear()} CardSync. All rights reserved.
-            </p>
+            <div className="flex flex-col items-center md:items-end">
+              <p className="text-xs sm:text-sm text-primary-foreground/70 mb-1">
+                © {new Date().getFullYear()} 株式会社Nobody. All rights reserved.
+              </p>
+              <Link href="/dashboard/privacy-policy" className="text-xs sm:text-sm text-primary-foreground/70 hover:text-primary-foreground underline">
+                プライバシーポリシー
+              </Link>
+            </div>
           </div>
         </div>
       </footer>
