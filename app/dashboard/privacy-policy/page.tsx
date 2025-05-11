@@ -124,7 +124,7 @@ export default function PrivacyPolicyPage() {
           <br />
           株式会社Nobody 個人情報お問い合わせ窓口
           <br />
-          メールアドレス: tiki4091@gmail.com
+          メールアドレス: quest202412@gmail.com
         </p>
         
         <p className="mt-6">以上</p>

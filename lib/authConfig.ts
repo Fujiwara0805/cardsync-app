@@ -12,6 +12,7 @@ export const nextAuthConfiguration: NextAuthOptions = {
           access_type: "offline",
           response_type: "code",
           scope: [
+            "openid",
             "https://www.googleapis.com/auth/userinfo.email",
             "https://www.googleapis.com/auth/userinfo.profile",
             "https://www.googleapis.com/auth/drive.file",
