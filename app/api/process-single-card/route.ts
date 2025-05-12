@@ -81,13 +81,14 @@ export async function POST(request: Request) {
     
     // スプレッドシートへの書き込み
     const sheetName = '名刺管理データベース';
-    // ヘッダー: ['名刺情報', '更新日', 'メモ', 'ファイル名']
-    const headerColumnCount = 4; 
+    // ヘッダー: ['名刺情報', '更新日', 'メモ', 'ファイル名', 'File ID']
+    const headerColumnCount = 5; // ヘッダー数を5に更新
     const valuesToWrite = [[
       parsedDataResult.textInfo || '',
       new Date().toISOString(),
       parsedDataResult.userNotes || '',
-      parsedDataResult.sourceFileName || fileName
+      parsedDataResult.sourceFileName || fileName,
+      fileId // <--- File ID をデータに追加
     ]];
 
     await sheets.spreadsheets.values.append({
