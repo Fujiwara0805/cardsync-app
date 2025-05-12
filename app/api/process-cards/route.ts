@@ -29,7 +29,11 @@ export async function POST(request: Request) {
   }
 
   try {
-    console.log('Card processing started for user:', session.user.id);
+    // リクエストからパラメータを取得
+    const requestData = await request.json().catch(() => ({}));
+    const keepMemos = requestData.keepMemos !== undefined ? requestData.keepMemos : true;
+    
+    console.log('Card processing started for user:', session.user.id, 'keepMemos:', keepMemos);
 
     const { data: userSettings, error: dbError } = await supabase
       .from('user_drive_settings')
@@ -112,6 +116,67 @@ export async function POST(request: Request) {
     }
     // --- ヘッダー行書き込み処理ここまで ---
 
+    // 既存のメモ情報を保持する場合の処理
+    let existingMemos = new Map<string, string>();
+    
+    if (keepMemos) {
+      try {
+        console.log('既存のメモ情報を取得中...');
+        const getSheetDataRes = await sheets.spreadsheets.values.get({
+          spreadsheetId: spreadsheetId,
+          range: `\'${sheetName}\'!A2:${String.fromCharCode(64 + expectedHeaderColumnCount)}`,
+        });
+        
+        if (getSheetDataRes.data.values && getSheetDataRes.data.values.length > 0) {
+          // 各行からファイルIDとメモを取得
+          const fileIdColumnIndex = 4; // 0-based index for File ID (5列目)
+          const memoColumnIndex = 2; // 0-based index for メモ (3列目)
+          
+          getSheetDataRes.data.values.forEach(row => {
+            if (row.length > fileIdColumnIndex && row[fileIdColumnIndex]) {
+              const fileId = row[fileIdColumnIndex];
+              const memo = row.length > memoColumnIndex ? row[memoColumnIndex] : '';
+              if (fileId && memo) {
+                existingMemos.set(fileId, memo);
+              }
+            }
+          });
+          
+          console.log(`${existingMemos.size}件の既存メモ情報を取得しました。`);
+        }
+      } catch (getMemoError: any) {
+        console.error('既存メモ情報の取得中にエラーが発生しました:', getMemoError.message);
+        // 処理を続行
+      }
+    }
+
+    // スプレッドシートのデータ行（2行目以降）をクリア
+    try {
+      console.log('Clearing existing data rows from the spreadsheet...');
+      
+      // スプレッドシートの行数を取得するためにシートの値を取得
+      const getSheetDataRes = await sheets.spreadsheets.values.get({
+        spreadsheetId: spreadsheetId,
+        range: `\'${sheetName}\'!A:${String.fromCharCode(64 + expectedHeaderColumnCount)}`,
+      });
+      
+      const rowCount = getSheetDataRes.data.values ? getSheetDataRes.data.values.length : 1;
+      
+      if (rowCount > 1) {
+        // ヘッダー行を残して2行目以降をクリア
+        await sheets.spreadsheets.values.clear({
+          spreadsheetId: spreadsheetId,
+          range: `\'${sheetName}\'!A2:${String.fromCharCode(64 + expectedHeaderColumnCount)}${rowCount}`,
+        });
+        console.log(`スプレッドシートのデータ行をクリアしました（2-${rowCount}行目）`);
+      } else {
+        console.log('スプレッドシートにクリアするデータ行がありません。');
+      }
+    } catch (clearError: any) {
+      console.error('データ行のクリア中にエラーが発生:', clearError.message);
+      // 処理を継続するため、エラーはスローせず記録のみ
+    }
+
     const drive = await getDriveClient();
     const listRes = await drive.files.list({
       q: `\'${folderId}\' in parents and trashed = false and (mimeType=\'image/jpeg\' or mimeType=\'image/png\')`,
@@ -137,7 +202,7 @@ export async function POST(request: Request) {
       let ocrTextInfo = '';
       let userNotesInfo = '';
       let sourceFileNameInfo = file.name;
-      let fileIdInfo = file.id; // file.id を取得
+      let fileIdInfo = file.id;
 
       if (file.name.toLowerCase().endsWith('.heic') || (file.mimeType && file.mimeType.toLowerCase().includes('heic'))) {
           console.log(`Skipping HEIC file: ${file.name}`);
@@ -169,24 +234,34 @@ export async function POST(request: Request) {
         ocrTextInfo = `非対応ファイル形式 (${file.name})`;
       }
       
+      // メモを保持するオプションが有効な場合、既存のメモを使用
+      if (keepMemos && existingMemos.has(fileIdInfo)) {
+        userNotesInfo = existingMemos.get(fileIdInfo) || '';
+        console.log(`ファイル${fileIdInfo}の既存メモを保持: ${userNotesInfo}`);
+      }
+      
       dataForSheet.push([
         ocrTextInfo,
         new Date().toISOString(),
         userNotesInfo,
         sourceFileNameInfo,
-        fileIdInfo // <--- File ID をデータに追加
+        fileIdInfo
       ]);
     }
 
     if (dataForSheet.length > 0) {
-      await sheets.spreadsheets.values.append({
+      // appendの代わりにupdateを使用して2行目から書き込み
+      await sheets.spreadsheets.values.update({
         spreadsheetId: spreadsheetId,
-        range: `\'${sheetName}\'!A:${String.fromCharCode(64 + expectedHeaderColumnCount)}`, // <--- 範囲を更新
+        range: `\'${sheetName}\'!A2`,
         valueInputOption: 'USER_ENTERED',
         requestBody: { values: dataForSheet },
       });
-      console.log(`${dataForSheet.length} records appended to Google Sheets.`);
-      return NextResponse.json({ message: `${dataForSheet.length}件の名刺データが処理され、スプレッドシートに書き込まれました。` }, { status: 200 });
+      console.log(`${dataForSheet.length}件のレコードがスプレッドシートに書き込まれました。${keepMemos ? '（既存メモ保持）' : '（クリア済み）'}`);
+      return NextResponse.json({ 
+        message: `スプレッドシートをクリアし、${dataForSheet.length}件の名刺データが処理され、書き込まれました。${keepMemos ? '既存のメモ情報は保持されています。' : ''}`, 
+        status: 200 
+      });
     } else {
       console.log('No data processed to write to sheets.');
       return NextResponse.json({ message: '処理できるデータがありませんでした。ヘッダー行は確認・作成されました。' }, { status: 200 });

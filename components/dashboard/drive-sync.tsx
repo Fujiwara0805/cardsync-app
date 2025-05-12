@@ -34,6 +34,7 @@ export default function DriveSync() {
     message: '',
     type: 'info',
   });
+  const [keepMemos, setKeepMemos] = useState(true);
 
   const serviceAccountEmail = process.env.NEXT_PUBLIC_GOOGLE_SERVICE_ACCOUNT_EMAIL;
 
@@ -169,6 +170,10 @@ export default function DriveSync() {
     try {
       const response = await fetch('/api/process-cards', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ keepMemos })
       });
 
       if (!response.ok) {
@@ -545,6 +550,25 @@ export default function DriveSync() {
                     <li>抽出データを指定されたスプレッドシートに登録</li>
                   </ol>
                    <p className="mt-3 text-xs text-muted-foreground">※OCR処理やGoogle APIとの連携には、バックエンドでの実装と適切な権限設定が必要です。</p>
+                </div>
+
+                <div className="mt-4 flex items-center space-x-2">
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="keepMemos"
+                      checked={keepMemos}
+                      onChange={(e) => setKeepMemos(e.target.checked)}
+                      className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                      disabled={processing || isSaving || !hasExistingSettings || isEditing}
+                    />
+                    <label htmlFor="keepMemos" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      既存のメモ情報を保持する
+                    </label>
+                  </div>
+                  <div className="inline-block" title="チェックを外すと、スプレッドシートのデータが完全にクリアされ、新しいデータのみが書き込まれます。チェックすると、既存のメモ情報が保持されます。">
+                    <Info size={16} className="text-muted-foreground cursor-help" />
+                  </div>
                 </div>
               </CardContent>
               <CardFooter>
