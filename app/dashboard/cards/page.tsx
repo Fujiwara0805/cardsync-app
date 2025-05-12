@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react'; // useState, 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input"; // Input をインポート
 import { AspectRatio } from "@/components/ui/aspect-ratio";
-import { Clock, FileText, Search, MessageSquareText, ImageOff, ChevronLeft, ChevronRight, Pencil, Loader2 } from 'lucide-react'; // Search, MessageSquareText, ImageOff, ChevronLeft, ChevronRight, Pencil, Loader2 をインポート
+import { Clock, FileText, Search, MessageSquareText, ImageOff, ChevronLeft, ChevronRight, Pencil, Loader2, Trash2, AlertTriangle } from 'lucide-react'; // Search, MessageSquareText, ImageOff, ChevronLeft, ChevronRight, Pencil, Loader2, Trash2, AlertTriangle をインポート
 import EmptyState from '@/components/dashboard/empty-state';
 import { Skeleton } from "@/components/ui/skeleton"; // スケルトンローディング用
 import { Button } from "@/components/ui/button"; // Button をインポート
@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Label } from "@/components/ui/label"; // Labelをインポート
 import { Textarea } from "@/components/ui/textarea"; // Textareaをインポート
 import { ToastNotification, type NotificationType as ToastType } from '@/components/ui/toast-notification'; // MODIFIED: Corrected import for ToastNotification and its type
+import { motion } from "framer-motion";
 
 interface DriveFile {
   id: string;
@@ -42,7 +43,11 @@ function CardSkeleton() {
   );
 }
 
-function BusinessCardImageItem({ file, onEdit }: { file: DriveFile; onEdit: (file: DriveFile) => void; }) {
+function BusinessCardImageItem({ file, onEdit, onDelete }: { 
+  file: DriveFile; 
+  onEdit: (file: DriveFile) => void; 
+  onDelete: (file: DriveFile) => void;
+}) {
   const displayDate = file.sheetModifiedDate 
     ? new Date(file.sheetModifiedDate).toLocaleDateString('ja-JP', {
         year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
@@ -60,59 +65,70 @@ function BusinessCardImageItem({ file, onEdit }: { file: DriveFile; onEdit: (fil
   }, [file]);
 
   return (
-    <Card className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col h-full">
-      <CardHeader className="p-4 pb-2 flex flex-row justify-between items-start">
-        <CardTitle className="text-base font-semibold truncate flex items-center mr-2">
-          <FileText className="w-4 h-4 mr-2 text-muted-foreground shrink-0" />
-          <span className="truncate" title={file.name}>{file.name}</span>
-        </CardTitle>
-        <Button variant="ghost" size="icon" onClick={() => onEdit(file)} className="shrink-0">
-          <Pencil className="h-4 w-4" />
-        </Button>
-      </CardHeader>
-      <CardContent className="p-0 flex-grow flex flex-col justify-center">
-        <AspectRatio ratio={16 / 9} className="bg-muted">
-          {imageError ? (
-            <div className="flex flex-col items-center justify-center h-full text-xs text-red-600 p-2">
-              <ImageOff className="w-8 h-8 mb-1" />
-              <span>画像表示エラー</span>
-              {file.webViewLink && (
-                <a 
-                    href={file.webViewLink} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="text-blue-600 hover:underline mt-1"
-                >
-                    Google Driveで表示
-                </a>
-              )}
-            </div>
-          ) : (
-            <img
-              src={`/api/get-image/${file.id}`}
-              alt={`名刺画像: ${file.name}`}
-              className="object-contain w-full h-full"
-              onError={() => setImageError(true)}
-              loading="lazy" // 遅延読み込み
-            />
-          )}
-        </AspectRatio>
-      </CardContent>
-      {file.memo && (
-        <div className="p-4 border-t">
-          <div className="flex items-start text-xs text-muted-foreground">
-            <MessageSquareText className="w-4 h-4 mr-2 mt-0.5 shrink-0" />
-            <p className="break-all line-clamp-3" title={file.memo}>{file.memo}</p>
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
+      <Card className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col h-full">
+        <CardHeader className="p-4 pb-2 flex flex-row justify-between items-start">
+          <CardTitle className="text-base font-semibold truncate flex items-center mr-2">
+            <FileText className="w-4 h-4 mr-2 text-muted-foreground shrink-0" />
+            <span className="truncate" title={file.name}>{file.name}</span>
+          </CardTitle>
+          <div className="flex shrink-0 space-x-1">
+            <Button variant="ghost" size="icon" onClick={() => onEdit(file)} className="h-8 w-8">
+              <Pencil className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="icon" onClick={() => onDelete(file)} className="h-8 w-8 text-red-500 hover:text-red-700">
+              <Trash2 className="h-4 w-4" />
+            </Button>
           </div>
-        </div>
-      )}
-      <CardFooter className="p-4 text-xs text-muted-foreground border-t">
-        <div className="flex items-center">
-          <Clock className="w-3 h-3 mr-1.5" />
-          <span>最終更新: {displayDate}</span>
-        </div>
-      </CardFooter>
-    </Card>
+        </CardHeader>
+        <CardContent className="p-0 flex-grow flex flex-col justify-center">
+          <AspectRatio ratio={16 / 9} className="bg-muted">
+            {imageError ? (
+              <div className="flex flex-col items-center justify-center h-full text-xs text-red-600 p-2">
+                <ImageOff className="w-8 h-8 mb-1" />
+                <span>画像表示エラー</span>
+                {file.webViewLink && (
+                  <a 
+                      href={file.webViewLink} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="text-blue-600 hover:underline mt-1"
+                  >
+                      Google Driveで表示
+                  </a>
+                )}
+              </div>
+            ) : (
+              <img
+                src={`/api/get-image/${file.id}`}
+                alt={`名刺画像: ${file.name}`}
+                className="object-contain w-full h-full"
+                onError={() => setImageError(true)}
+                loading="lazy" // 遅延読み込み
+              />
+            )}
+          </AspectRatio>
+        </CardContent>
+        {file.memo && (
+          <div className="p-4 border-t">
+            <div className="flex items-start text-xs text-muted-foreground">
+              <MessageSquareText className="w-4 h-4 mr-2 mt-0.5 shrink-0" />
+              <p className="break-all line-clamp-3" title={file.memo}>{file.memo}</p>
+            </div>
+          </div>
+        )}
+        <CardFooter className="p-4 text-xs text-muted-foreground border-t">
+          <div className="flex items-center">
+            <Clock className="w-3 h-3 mr-1.5" />
+            <span>最終更新: {displayDate}</span>
+          </div>
+        </CardFooter>
+      </Card>
+    </motion.div>
   );
 }
 
@@ -131,6 +147,12 @@ export default function BusinessCardsListPage() {
   const [editedFileName, setEditedFileName] = useState('');
   const [editedMemo, setEditedMemo] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  // -------------------------
+
+  // --- 削除確認モーダル用 State ---
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deletingFile, setDeletingFile] = useState<DriveFile | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   // -------------------------
 
   // --- トースト通知用 State ---
@@ -231,7 +253,6 @@ export default function BusinessCardsListPage() {
   const handleEditModalClose = () => {
     setIsEditModalOpen(false);
     setEditingFile(null);
-    // isSavingがfalseの時だけクリアするなどの制御も可能
   };
 
   const handleSaveChanges = async () => {
@@ -258,10 +279,47 @@ export default function BusinessCardsListPage() {
       showNotification('名刺情報を更新しました。', 'success'); // トースト表示
     } catch (err: any) {
       console.error("Error updating card info:", err);
-      // setError(err.message || '更新処理中にエラーが発生しました。'); // モーダルが閉じるのでモーダル内エラー表示は不要かも
       showNotification(err.message || '更新処理中にエラーが発生しました。', 'error'); // エラー時もトースト表示
     } finally {
       setIsSaving(false);
+    }
+  };
+  // ----------------------------
+
+  // --- 削除モーダル関連関数 ---
+  const handleDeleteModalOpen = (file: DriveFile) => {
+    setDeletingFile(file);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleDeleteModalClose = () => {
+    setIsDeleteModalOpen(false);
+    setDeletingFile(null);
+  };
+
+  const handleDeleteCard = async () => {
+    if (!deletingFile) return;
+    setIsDeleting(true);
+    try {
+      const response = await fetch('/api/delete-card', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fileId: deletingFile.id,
+        }),
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || '名刺の削除に失敗しました。');
+      }
+      await fetchCardData();
+      handleDeleteModalClose();
+      showNotification('名刺を削除しました。', 'success');
+    } catch (err: any) {
+      console.error("Error deleting card:", err);
+      showNotification(err.message || '削除処理中にエラーが発生しました。', 'error');
+    } finally {
+      setIsDeleting(false);
     }
   };
   // ----------------------------
@@ -278,7 +336,7 @@ export default function BusinessCardsListPage() {
     );
   }
 
-  if (error && !isEditModalOpen) { // モーダル表示中はメインのエラー表示をしない
+  if (error && !isEditModalOpen && !isDeleteModalOpen) { // モーダル表示中はメインのエラー表示をしない
     return (
       <div className="container mx-auto px-4 py-8">
         <EmptyState title="エラー" description={error} iconName="AlertTriangle" />
@@ -311,7 +369,12 @@ export default function BusinessCardsListPage() {
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
             {currentDisplayImages.map((file) => (
-              <BusinessCardImageItem key={file.id} file={file} onEdit={handleEditModalOpen} />
+              <BusinessCardImageItem 
+                key={file.id} 
+                file={file} 
+                onEdit={handleEditModalOpen} 
+                onDelete={handleDeleteModalOpen}
+              />
             ))}
           </div>
           {totalPages > 1 && (
@@ -359,11 +422,11 @@ export default function BusinessCardsListPage() {
                   disabled={isSaving}
                 />
               </div>
-              {error && isEditModalOpen && ( // モーダル内エラーは残すが、更新成功時はモーダルが閉じるので表示されない
+              {error && isEditModalOpen && (
                   <p className="col-span-4 text-sm text-red-600 text-center">{error}</p>
               )}
             </div>
-            <DialogFooter className="flex flex-row justify-end gap-2"> {/* flex-row と justify-end で右寄せ横並び、gapで間隔 */}
+            <DialogFooter className="flex flex-row justify-end gap-2">
               <DialogClose asChild>
                 <Button type="button" variant="outline" disabled={isSaving} size="sm">キャンセル</Button>
               </DialogClose>
@@ -374,7 +437,7 @@ export default function BusinessCardsListPage() {
                     処理中...
                   </>
                 ) : (
-                  '更新' // 名称を「更新」に変更
+                  '更新'
                 )}
               </Button>
             </DialogFooter>
@@ -382,6 +445,52 @@ export default function BusinessCardsListPage() {
         </Dialog>
       )}
       {/* ------------------ */}
+
+      {/* --- 削除確認モーダル --- */}
+      {deletingFile && (
+        <Dialog open={isDeleteModalOpen} onOpenChange={(isOpen) => { if(!isOpen) handleDeleteModalClose(); else setIsDeleteModalOpen(true);}}>
+          <DialogContent className="sm:max-w-[480px] w-[90vw] max-w-[400px] sm:w-full">
+            <DialogHeader>
+              <DialogTitle className="flex items-center text-red-600">
+                <AlertTriangle className="w-5 h-5 mr-2" />
+                名刺の削除
+              </DialogTitle>
+              <DialogDescription>
+                以下の名刺を削除します。この操作は取り消せません。Google Driveのゴミ箱に移動されます。
+              </DialogDescription>
+            </DialogHeader>
+            <div className="py-4">
+              <p className="font-semibold mb-2">削除する名刺：</p>
+              <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+                {deletingFile.name}
+              </div>
+            </div>
+            <DialogFooter className="flex flex-row justify-end gap-2">
+              <DialogClose asChild>
+                <Button type="button" variant="outline" disabled={isDeleting} size="sm">キャンセル</Button>
+              </DialogClose>
+              <Button 
+                type="button" 
+                onClick={handleDeleteCard} 
+                disabled={isDeleting} 
+                variant="destructive" 
+                size="sm"
+              >
+                {isDeleting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    削除中...
+                  </>
+                ) : (
+                  '削除する'
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+      {/* ------------------ */}
+
       <ToastNotification
         isOpen={notification.isOpen}
         message={notification.message}
