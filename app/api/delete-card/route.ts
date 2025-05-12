@@ -1,13 +1,14 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from "next-auth/next";
 import { nextAuthConfiguration } from "@/lib/authConfig";
-import { getDriveClient, getSheetsClient } from '@/lib/googleAuth';
+import { getSheetsClient } from '@/lib/googleAuth';
 import { supabase } from '@/lib/supabaseClient';
+import { google } from 'googleapis';
 
 export async function POST(request: Request) {
-  const session = await getServerSession(nextAuthConfiguration);
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: '認証されていません。' }, { status: 401 });
+  const session = await getServerSession(nextAuthConfiguration) as any;
+  if (!session?.user?.id || !session?.accessToken) {
+    return NextResponse.json({ error: '認証されていません。', details: '認証情報が不足しています。' }, { status: 401 });
   }
 
   try {
@@ -32,14 +33,25 @@ export async function POST(request: Request) {
     const spreadsheetId = userSettings.google_spreadsheet_id;
     const sheetName = '名刺管理データベース';
     
-    // 1. Google Driveからファイルを削除（ゴミ箱に移動）
-    const drive = await getDriveClient();
-    await drive.files.update({
-      fileId: fileId,
-      requestBody: { trashed: true }
-    });
+    // 1. ユーザーのアクセストークンを使用してDriveファイルを削除
+    const oauth2Client = new google.auth.OAuth2();
+    oauth2Client.setCredentials({ access_token: session.accessToken });
+    const drive = google.drive({ version: 'v3', auth: oauth2Client });
     
-    // 2. スプレッドシートから該当する行を削除
+    try {
+      await drive.files.update({
+        fileId: fileId,
+        requestBody: { trashed: true }
+      });
+    } catch (driveError: any) {
+      console.error('Drive file deletion error:', driveError);
+      return NextResponse.json({ 
+        error: 'Google Driveファイルの削除に失敗しました。', 
+        details: driveError.message || 'ファイルに対する権限がないか、すでに削除されています。'
+      }, { status: 403 });
+    }
+    
+    // 2. スプレッドシートから該当する行を削除 (サービスアカウント経由)
     const sheets = await getSheetsClient();
     
     // ファイルIDの列を特定するためにヘッダー行を取得
@@ -52,7 +64,9 @@ export async function POST(request: Request) {
     const fileIdColumnIndex = headerRow.findIndex(h => h === 'File ID');
     
     if (fileIdColumnIndex === -1) {
-      return NextResponse.json({ error: "スプレッドシートに 'File ID' 列が見つかりません。" }, { status: 400 });
+      return NextResponse.json({ 
+        message: "Google Driveのファイルは削除されましたが、スプレッドシートに 'File ID' 列が見つからないため、シートの更新はスキップされました。"
+      });
     }
     
     // 全データを取得してファイルIDが一致する行を探す
@@ -65,14 +79,16 @@ export async function POST(request: Request) {
     let targetRowIndex = -1;
     
     for (let i = 1; i < rows.length; i++) {
-      if (rows[i][fileIdColumnIndex] === fileId) {
+      if (rows[i] && rows[i][fileIdColumnIndex] === fileId) {
         targetRowIndex = i + 1; // シートの行番号は1から始まる
         break;
       }
     }
     
     if (targetRowIndex === -1) {
-      return NextResponse.json({ message: "スプレッドシートに該当するデータがないため、Driveのファイルのみ削除しました。" });
+      return NextResponse.json({ 
+        message: "Google Driveのファイルは削除されましたが、スプレッドシートに該当するデータが見つかりませんでした。" 
+      });
     }
     
     // 行の削除リクエスト（空の配列でその行を上書き）
@@ -88,6 +104,9 @@ export async function POST(request: Request) {
     
   } catch (error: any) {
     console.error("Error deleting card:", error);
-    return NextResponse.json({ error: error.message || '名刺の削除中にエラーが発生しました。' }, { status: 500 });
+    return NextResponse.json({ 
+      error: '名刺の削除中にエラーが発生しました。', 
+      details: error.message || '不明なエラーが発生しました。'
+    }, { status: 500 });
   }
 }

@@ -462,7 +462,7 @@ export default function BusinessCardsListPage() {
             <div className="py-4">
               <p className="font-semibold mb-2">削除する名刺：</p>
               <div className="p-3 bg-red-50 border border-red-200 rounded-md">
-                {deletingFile.name}
+                <span className="text-gray-700">{deletingFile.name}</span>
               </div>
             </div>
             <DialogFooter className="flex flex-row justify-end gap-2">
