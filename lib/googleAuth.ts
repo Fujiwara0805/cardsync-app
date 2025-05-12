@@ -1,5 +1,8 @@
 import { google, Auth } from 'googleapis';
-import { ImageAnnotatorClient } from '@google-cloud/vision'; // Vision APIクライアント
+import { ImageAnnotatorClient, protos } from '@google-cloud/vision'; // Vision APIクライアント
+
+let parsedCredentials: any; // 型を適切に設定することも検討 (e.g., ServiceAccountCredentials)
+let isCredentialsParsedAsJson = false;
 
 // GOOGLE_APPLICATION_CREDENTIALS 環境変数が設定されていれば、
 // 各Google Cloudクライアントライブラリはそれを自動的に検出し使用します。
@@ -8,27 +11,46 @@ import { ImageAnnotatorClient } from '@google-cloud/vision'; // Vision APIクラ
 if (!process.env.GOOGLE_APPLICATION_CREDENTIALS) {
   console.warn(
     '警告: 環境変数 GOOGLE_APPLICATION_CREDENTIALS が設定されていません。' +
-    'Google Cloud サービスが正しく認証されない可能性があります。' +
-    'サービスアカウントキーJSONファイルへのパスが正しく設定されているか確認してください。'
+    'Google Cloud サービスが正しく認証されない可能性があります。'
   );
 } else {
-  // 開発時の確認用ログ（本番では削除してもOK）
-  console.log(
-    `[googleAuth] GOOGLE_APPLICATION_CREDENTIALS は次のパスで設定されています: ${process.env.GOOGLE_APPLICATION_CREDENTIALS}`
-  );
+  if (process.env.GOOGLE_APPLICATION_CREDENTIALS.trim().startsWith('{')) {
+    try {
+      parsedCredentials = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS);
+      isCredentialsParsedAsJson = true;
+      console.log('[googleAuth] GOOGLE_APPLICATION_CREDENTIALS をJSONオブジェクトとして正常にパースしました。');
+    } catch (e: any) {
+      console.error(
+        '[googleAuth] GOOGLE_APPLICATION_CREDENTIALS のJSONとしてのパースに失敗しました。' +
+        'ファイルパスとして扱われます。エラー: ' + e.message
+      );
+      // parsedCredentials は undefined のまま
+    }
+  } else {
+    // JSON文字列で始まらない場合はファイルパスとみなす
+    console.log(
+      `[googleAuth] GOOGLE_APPLICATION_CREDENTIALS は次のパスで設定されています: ${process.env.GOOGLE_APPLICATION_CREDENTIALS}`
+    );
+    // parsedCredentials は undefined のまま
+  }
 }
 
 export function getGoogleAuth() {
-  // credentialsを明示的に指定せず、デフォルトの検索メカニズムに任せます。
-  // GOOGLE_APPLICATION_CREDENTIALS が使用されます。
-  const auth = new google.auth.GoogleAuth({
+  const authOptions: Auth.GoogleAuthOptions = {
     scopes: [
-      'https://www.googleapis.com/auth/drive.readonly', // Driveの読み取り専用スコープ
+      'https://www.googleapis.com/auth/drive', // process-cardsでファイル一覧取得とファイル内容取得のため
       'https://www.googleapis.com/auth/spreadsheets',    // Sheetsの読み書きスコープ
       // 'https://www.googleapis.com/auth/cloud-platform' // Vision APIなど広範なアクセスが必要な場合
     ],
-  });
-  return auth;
+  };
+
+  if (isCredentialsParsedAsJson && parsedCredentials) {
+    authOptions.credentials = parsedCredentials;
+  }
+  // parsedCredentials が未設定、またはJSONとしてパースできなかった場合（ファイルパスの場合など）は、
+  // GoogleAuth が GOOGLE_APPLICATION_CREDENTIALS 環境変数をファイルパスとして解釈しようとします。
+
+  return new google.auth.GoogleAuth(authOptions);
 }
 
 export async function getDriveClient() {
@@ -45,7 +67,12 @@ export async function getSheetsClient() {
 }
 
 export function getVisionClient() {
-  // ImageAnnotatorClient も GOOGLE_APPLICATION_CREDENTIALS が設定されていれば、
-  // コンストラクタに何も渡さなくても自動的に認証情報を読み込みます。
+  if (isCredentialsParsedAsJson && parsedCredentials) {
+    // 明示的にパースされた認証情報を使用
+    return new ImageAnnotatorClient({ credentials: parsedCredentials });
+  }
+  // パースされた認証情報がない場合（ファイルパスが設定されている、または環境変数が未設定など）
+  // ImageAnnotatorClient は GOOGLE_APPLICATION_CREDENTIALS をファイルパスとして参照しようとするか、
+  // 他のデフォルトの認証メカニズム（ADCなど）を使用します。
   return new ImageAnnotatorClient();
 }
