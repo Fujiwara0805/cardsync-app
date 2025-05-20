@@ -248,12 +248,21 @@ export default function LandingPage() {
                 今すぐCardSyncを導入し、名刺管理の新しいスタンダードを体験してください。
               </p>
               {session ? (
-                <Button asChild size="lg" variant="secondary" className="w-full sm:w-auto text-lg py-3 px-8 bg-white text-primary hover:bg-gray-100">
-                  <Link href="/dashboard">ダッシュボードへ</Link>
+                <Button asChild size="lg" className="w-full sm:w-auto text-lg py-3 px-8 bg-white text-primary hover:bg-gray-100">
+                  <Link href="/dashboard">
+                    ダッシュボードへ
+                    <ChevronRight className="ml-2 h-5 w-5" />
+                  </Link>
                 </Button>
               ) : (
-                <Button onClick={handleSignIn} size="lg" variant="secondary" disabled={isLoading || status === 'loading'} className="w-full sm:w-auto text-lg py-3 px-8 bg-white text-primary hover:bg-gray-100">
-                  {isLoading || status === 'loading' ? '接続中...' : '無料で始める'}
+                <Button 
+                  onClick={handleSignIn} 
+                  size="lg" 
+                  disabled={isLoading || status === 'loading'} 
+                  className="w-full sm:w-auto text-lg py-3 px-8 bg-white text-primary hover:bg-gray-100"
+                >
+                  {isLoading || status === 'loading' ? '接続中...' : '今すぐ無料で試す'}
+                  <ChevronRight className="ml-2 h-5 w-5" />
                 </Button>
               )}
             </div>
@@ -261,22 +270,20 @@ export default function LandingPage() {
         </section>
       </main>
 
-      <footer className="bg-primary text-primary-foreground py-8 sm:py-10 px-4">
-        <div className="container mx-auto">
-          <div className="flex flex-col md:flex-row justify-between items-center text-center md:text-left">
-            <div className="flex items-center space-x-2 mb-4 md:mb-0">
-              <Cloud className="h-5 w-5 sm:h-6 sm:w-6 text-primary-foreground" />
-              <span className="text-lg sm:text-xl font-bold text-primary-foreground">CardSync</span>
-            </div>
-            <div className="flex flex-col items-center md:items-end">
-              <p className="text-xs sm:text-sm text-primary-foreground/70 mb-1">
-                © {new Date().getFullYear()} 株式会社Nobody. All rights reserved.
-              </p>
-              <Link href="/dashboard/privacy-policy" className="text-xs sm:text-sm text-primary-foreground/70 hover:text-primary-foreground underline">
-                プライバシーポリシー
-              </Link>
-            </div>
+      <footer className="py-8 bg-muted/50 text-muted-foreground border-t">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mb-4">
+            <Link href="/dashboard/privacy-policy" className="text-sm hover:text-primary transition-colors">
+              プライバシーポリシー
+            </Link>
+            <Link href="/dashboard/terms-of-service" className="text-sm hover:text-primary transition-colors">
+              利用規約
+            </Link>
+            {/* 必要に応じて他のリンクを追加 */}
           </div>
+          <p className="text-sm">
+            &copy; {new Date().getFullYear()} CardSync. All rights reserved.
+          </p>
         </div>
       </footer>
     </div>
