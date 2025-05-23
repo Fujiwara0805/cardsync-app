@@ -5,16 +5,37 @@ import { motion } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { FolderSync, Upload, FileSpreadsheet, Check, AlertCircle, LogIn, LogOut, Save, CheckCircle, Copy, Edit, Loader2, Info } from 'lucide-react';
+import { FolderSync, Upload, FileSpreadsheet, Check, AlertCircle, LogIn, LogOut, Save, CheckCircle, Copy, Edit, Loader2, Info, Settings } from 'lucide-react';
 import { useSession, signIn, signOut } from 'next-auth/react';
 import { cn } from '@/lib/utils';
 import { ToastNotification, type NotificationType } from '@/components/ui/toast-notification';
+
+// Add these type declarations
+declare global {
+  interface Window {
+    gapi: any; // You can replace 'any' with more specific types if available
+    google: {
+      picker: any; // You can replace 'any' with more specific types if available
+      [key: string]: any; // For other google properties if needed
+    };
+  }
+}
 
 interface NotificationState {
   isOpen: boolean;
   message: string;
   type: NotificationType;
 }
+
+// 型定義 (仮。実際のAPIレスポンスに合わせる)
+interface UserSettings {
+  google_spreadsheet_id?: string;
+  google_folder_id?: string;
+}
+
+// Google APIのスクリプトURL
+const GAPI_SCRIPT_URL = 'https://apis.google.com/js/api.js';
+const PICKER_SCRIPT_URL = 'https://apis.google.com/js/picker.js';
 
 export default function DriveSync() {
   const { data: session, status } = useSession();
@@ -36,7 +57,87 @@ export default function DriveSync() {
   });
   const [keepMemos, setKeepMemos] = useState(true);
 
+  // --- Google Picker API関連のState ---
+  const [gapiLoaded, setGapiLoaded] = useState(false);
+  const [pickerApiLoaded, setPickerApiLoaded] = useState(false);
+  const [oauthToken, setOauthToken] = useState<string | null>(null);
+  
+  // APIキー (Google Cloud Consoleから取得したAPIキーを設定)
+  const DEVELOPER_KEY = process.env.NEXT_PUBLIC_GOOGLE_API_KEY;
+  const APP_ID = process.env.NEXT_PUBLIC_GOOGLE_APP_ID; // PickerのsetAppId用
+
   const serviceAccountEmail = process.env.NEXT_PUBLIC_GOOGLE_SERVICE_ACCOUNT_EMAIL;
+
+  // --- Google API Client & Picker APIスクリプトのロード ---
+  useEffect(() => {
+    const loadGapiScript = () => {
+      const script = document.createElement('script');
+      script.src = GAPI_SCRIPT_URL;
+      script.onload = () => {
+        if (window.gapi) {
+          window.gapi.load('client:picker', () => {
+            setGapiLoaded(true);
+            loadPickerScript(); 
+          });
+        } else {
+          console.error("GAPI script loaded but window.gapi is not defined.");
+          showNotification("Google APIの初期化に失敗しました(GAPI)。", "error");
+        }
+      };
+      script.onerror = () => {
+        showNotification("Google APIスクリプトの読み込みに失敗しました(GAPI)。", "error");
+      }
+      script.async = true;
+      script.defer = true;
+      document.body.appendChild(script);
+    };
+
+    const loadPickerScript = () => {
+      const script = document.createElement('script');
+      script.src = PICKER_SCRIPT_URL;
+      script.onload = () => {
+        if (window.google && window.google.picker) {
+          setPickerApiLoaded(true);
+        } else {
+           console.error("Picker API script loaded but window.google.picker is not defined.");
+           showNotification("Google APIの初期化に失敗しました(Picker)。", "error");
+        }
+      };
+      script.onerror = () => {
+        showNotification("Google Picker APIスクリプトの読み込みに失敗しました。", "error");
+      }
+      script.async = true;
+      script.defer = true;
+      document.body.appendChild(script);
+    };
+
+    if (typeof window !== 'undefined') {
+      if (!(window as any).gapi) {
+        loadGapiScript();
+      } else if (!(window as any).google?.picker) {
+        // gapiはロード済みだがpickerがまだの場合
+        if (!gapiLoaded) { // gapi.loadが未完了の可能性を考慮
+             window.gapi.load('client:picker', () => {
+                setGapiLoaded(true);
+                loadPickerScript();
+            });
+        } else {
+            loadPickerScript();
+        }
+      } else {
+        setGapiLoaded(true);
+        setPickerApiLoaded(true);
+      }
+    }
+  }, [gapiLoaded]); // gapiLoadedを追加して再試行の可能性を考慮
+
+  useEffect(() => {
+    if (session && (session as any).accessToken) {
+      setOauthToken((session as any).accessToken);
+    } else {
+      setOauthToken(null);
+    }
+  }, [session]);
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -77,6 +178,8 @@ export default function DriveSync() {
   }, [status, session]);
 
   const handleGoogleSignIn = async () => {
+    // signIn('google') の際に、新しいスコープが適用されるようにする
+    // (nextAuthConfigurationでスコープが drive.file のみになっていることを確認済みという前提)
     await signIn('google');
   };
 
@@ -151,18 +254,20 @@ export default function DriveSync() {
   };
 
   const syncNow = async () => {
-    if (status === 'loading') {
-      showNotification('認証情報を確認中です。少し時間をおいて再度お試しください。', 'info');
+    if (!isAuthenticated) { // 認証状態を最初に確認
+      showNotification('Googleアカウントに接続されていません。接続してください。', 'error');
       return;
     }
-    if (!session?.user?.id) {
-      showNotification('認証情報がありません。再度ログインしてください。', 'error');
+    if (!gapiLoaded || !pickerApiLoaded) { // Picker APIのロードも確認
+      showNotification('Google APIの準備ができていません。ページを再読み込みするか、しばらくお待ちください。', 'info');
       return;
     }
-    if (!folderId || !spreadsheetId) {
-      showNotification('名刺処理を開始する前に、Google DriveのフォルダIDとスプレッドシートIDを設定してください。', 'error');
+     if (!hasExistingSettings || !folderId || !spreadsheetId) { // 設定が保存されているか
+      showNotification('名刺処理を開始する前に、Google DriveのフォルダIDとスプレッドシートIDを設定・保存してください。', 'error');
       return;
     }
+    // ここで、spreadsheetIdがユーザーによってPickerで選択・許可されたものかどうかの
+    // 直接的なチェックは難しいが、UIフローとしてPicker経由での設定を促している前提。
 
     setProcessing(true);
     console.log('同期処理を開始します...');
@@ -235,6 +340,54 @@ export default function DriveSync() {
           setFolderId(initialFolderId);
           setSpreadsheetId(initialSpreadsheetId);
       }
+  };
+
+  // --- Google Picker API呼び出しハンドラ ---
+  const handleOpenPickerForSpreadsheet = () => {
+    if (!gapiLoaded || !pickerApiLoaded) {
+      showNotification('Google Picker APIの準備ができていません。しばらく待つか、ページを再読み込みしてください。', 'error');
+      console.error('Picker API not loaded. gapiLoaded:', gapiLoaded, 'pickerApiLoaded:', pickerApiLoaded);
+      return;
+    }
+    if (!oauthToken) {
+      showNotification('Google認証トークンがありません。再度ログインしてください。', 'error');
+      return;
+    }
+    if (!DEVELOPER_KEY) {
+      showNotification('Google APIキーが設定されていません。管理者に連絡してください。', 'error');
+      return;
+    }
+    if (!APP_ID) {
+      showNotification('GoogleアプリケーションIDが設定されていません。管理者に連絡してください。', 'error');
+      return;
+    }
+
+    const view = new window.google.picker.DocsView(window.google.picker.ViewId.SPREADSHEETS)
+      .setIncludeFolders(true)
+      .setMimeTypes("application/vnd.google-apps.spreadsheet");
+      // もし既存のspreadsheetIdがあれば、それを初期選択させる試み（setQueryなどで）
+      // if (spreadsheetId) {
+      //   view.setQuery(spreadsheetId); // 例: IDで直接検索できるか（API仕様確認）
+      // }
+
+    const picker = new window.google.picker.PickerBuilder()
+      .setAppId(APP_ID)
+      .setOAuthToken(oauthToken)
+      .setDeveloperKey(DEVELOPER_KEY)
+      .setLocale('ja')
+      .addView(view)
+      .setCallback((data: any) => {
+        if (data[window.google.picker.Response.ACTION] == window.google.picker.Action.PICKED) {
+          const doc = data[window.google.picker.Response.DOCUMENTS][0];
+          const fileId = doc[window.google.picker.Document.ID];
+          setSpreadsheetId(fileId); // Pickerで選択されたIDをStateにセット
+          showNotification(`スプレッドシートが選択されました。ID: ${fileId}\n設定を保存してください。`, 'info');
+        } else if (data[window.google.picker.Response.ACTION] == window.google.picker.Action.CANCEL) {
+          showNotification('スプレッドシートの選択がキャンセルされました。', 'info');
+        }
+      })
+      .build();
+    picker.setVisible(true);
   };
 
   return (
@@ -486,16 +639,29 @@ export default function DriveSync() {
                         <div className="min-w-0 flex-1">
                             <p className="text-sm font-medium text-gray-700 dark:text-gray-300">スプレッドシートIDの入力</p>
                             <p className="text-xs text-muted-foreground mt-1 mb-2">
-                                上記の手順が完了したら、コピーしたスプレッドシートIDを下の欄に入力してください。
+                                上記の手順が完了したら、コピーしたスプレッドシートIDを下の欄に入力するか、「スプレッドシートを選択」ボタンでファイルを選択してください。
                             </p>
-                            <Input
-                                id="spreadsheetId"
-                                placeholder="GoogleスプレッドシートのIDを入力"
-                                value={spreadsheetId}
-                                onChange={(e) => setSpreadsheetId(e.target.value)}
-                                disabled={!isEditing || isSaving}
-                                className={cn("bg-background", !isEditing && hasExistingSettings && "bg-gray-100 dark:bg-gray-800")}
-                            />
+                            <div className="flex items-center gap-2">
+                              <Input
+                                  id="spreadsheetId"
+                                  placeholder="GoogleスプレッドシートのIDを入力"
+                                  value={spreadsheetId}
+                                  onChange={(e) => setSpreadsheetId(e.target.value)}
+                                  disabled={!isEditing || isSaving}
+                                  className={cn("bg-background flex-grow", !isEditing && hasExistingSettings && "bg-gray-100 dark:bg-gray-800")}
+                              />
+                              <Button
+                                onClick={handleOpenPickerForSpreadsheet}
+                                variant="outline"
+                                size="icon"
+                                disabled={!isEditing || isSaving || !gapiLoaded || !pickerApiLoaded || !oauthToken || isLoadingSession}
+                                title="Google Pickerでスプレッドシートを選択"
+                              >
+                                <Settings size={18} /> 
+                                <span className="sr-only">スプレッドシートを選択</span>
+                              </Button>
+                            </div>
+                            {(!gapiLoaded || !pickerApiLoaded && isAuthenticated ) && <p className="text-xs text-destructive mt-1">Picker APIの読み込み中です...</p>}
                         </div>
                     </div>
                 </div>
