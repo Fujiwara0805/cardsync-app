@@ -88,7 +88,7 @@ export async function POST(request: Request) {
     // 2. スプレッドシートの情報を更新
     const getValuesResponse = await sheets.spreadsheets.values.get({
         spreadsheetId,
-        range: `${sheetName}!A:Z`, 
+        range: `${sheetName}!A:Z`,
     });
     const rows = getValuesResponse.data.values;
 
