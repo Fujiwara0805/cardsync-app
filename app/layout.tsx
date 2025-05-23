@@ -15,6 +15,16 @@ const fontSans = FontSans({
   variable: '--font-sans',
 });
 
+export const metadata: Metadata = {
+  title: 'CardSync',
+  description: 'CardSyncは、Google Driveのスプレッドシートと連携して、名刺情報を管理するアプリです。',
+  icons: {
+    icon: 'https://res.cloudinary.com/dz9trbwma/image/upload/v1747987887/CardSync_rr3hvh.png',
+    shortcut: 'https://res.cloudinary.com/dz9trbwma/image/upload/v1747987887/CardSync_rr3hvh.png',
+    apple: 'https://res.cloudinary.com/dz9trbwma/image/upload/v1747987887/CardSync_rr3hvh.png',
+  },
+};
+
 export default function RootLayout({
   children,
 }: {
