@@ -41,10 +41,10 @@ export default function SplashScreen({ onFinished }: SplashScreenProps) {
             transition={{ duration: 0.8, ease: 'backOut', delay: 0.2 }}
             className="flex flex-col items-center"
           >
-            <Zap size={80} className="text-primary mb-6" />
+            <Zap size={96} className="text-primary mb-8" />
             
             <motion.h1 
-              className="text-3xl font-bold text-foreground mb-2"
+              className="text-4xl font-bold text-foreground mb-3"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.8 }}
@@ -52,7 +52,7 @@ export default function SplashScreen({ onFinished }: SplashScreenProps) {
               CardSync
             </motion.h1>
             <motion.p 
-              className="text-lg text-muted-foreground"
+              className="text-xl text-muted-foreground"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 1.0 }}

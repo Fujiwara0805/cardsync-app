@@ -47,23 +47,23 @@ export default function LandingPage() {
   const features = [
     {
       icon: <Cloud className="h-8 w-8 text-primary" />,
-      title: 'Google Drive連携',
-      description: 'Google Driveにアップロードした名刺を自動で処理。シームレスなデータフローを実現します。'
+      title: 'Google Driveと瞬時に連携',
+      description: '使い慣れたGoogle Driveが名刺データベースに。アップロードするだけで、面倒な手入力から解放されます。'
     },
     {
       icon: <Search className="h-8 w-8 text-primary" />,
-      title: 'AI-OCR処理',
-      description: '最先端のAI-OCR技術により、名刺情報を高精度かつ迅速にデジタル化します。'
+      title: 'AIが高精度で読み取り',
+      description: '最新AI-OCRが、文字のカスレや複雑なデザインの名刺も正確に読み取り。あなたの時間を無駄にしません。'
     },
     {
       icon: <Database className="h-8 w-8 text-primary" />,
-      title: 'スプレッドシート連携',
-      description: '抽出データは自動でGoogle スプレッドシートに集約。効率的な情報管理をサポートします。'
+      title: '情報はスプレッドシートに集約',
+      description: '抽出データはリアルタイムでGoogleスプレッドシートへ。検索、編集、共有も思いのまま。'
     },
     {
       icon: <Share2 className="h-8 w-8 text-primary" />,
-      title: 'データ活用',
-      description: 'チーム内での情報共有やCRM連携など、ビジネスの成長に繋がるデータ活用を促進します。'
+      title: 'ビジネスチャンスを最大化',
+      description: '常に最新の人脈情報で、営業効率アップ。チーム連携を強化し、次のアクションを加速させます。'
     }
   ];
 
@@ -122,10 +122,10 @@ export default function LandingPage() {
                 className="flex flex-col space-y-5 sm:space-y-8 text-center lg:text-left"
               >
                 <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-foreground">
-                  名刺管理を、<span className="text-primary">再定義</span>する
+                  その名刺、<span className="text-primary">眠らせていませんか？</span>
                 </h1>
                 <p className="text-lg sm:text-xl text-muted-foreground max-w-xl mx-auto lg:mx-0">
-                  Google Drive連携とAI技術で、アナログな名刺情報をスマートなビジネス資産へ。CardSyncが組織の生産性向上を実現します。
+                  CardSyncが、あなたの名刺管理を劇的に変革します。山積みの名刺、煩雑な手入力、更新されない情報… そんな悩みはもう不要。AIとクラウドの力で、貴重な人脈を「活きる」資産へ。ビジネスのスタートアップも、日々の業務効率化も、CardSyncにお任せください。
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 sm:gap-5 justify-center lg:justify-start pt-4">
                   {session ? (
@@ -168,9 +168,9 @@ export default function LandingPage() {
         <section id="features" className="py-16 md:py-20 bg-muted/30 px-4">
           <div className="container mx-auto">
             <div className="text-center mb-12 sm:mb-16">
-              <h2 className="text-3xl sm:text-4xl font-bold text-foreground">主な機能</h2>
+              <h2 className="text-3xl sm:text-4xl font-bold text-foreground">CardSyncが選ばれる理由</h2>
               <p className="mt-4 sm:mt-5 text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto">
-                CardSyncは、名刺管理の非効率を解消し、ビジネスチャンスを最大化するための強力な機能を提供します。
+                名刺管理の「あったらいいな」を全て凝縮。あなたのビジネスを次のステージへ導く、CardSyncだけの価値を体験してください。
               </p>
             </div>
 
@@ -195,43 +195,43 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* データ利用に関する説明セクション */}
+        {/* データ利用に関する説明セクション (ユーザーメリットを強調) */}
         <section className="py-16 md:py-20 px-4">
           <div className="container mx-auto">
             <div className="max-w-3xl mx-auto text-center mb-12 sm:mb-16">
               <h2 className="text-3xl sm:text-4xl font-bold text-foreground">
-                お客様のデータ利用について
+                あなたのデータは、安全かつスマートに。
               </h2>
               <p className="mt-4 sm:mt-5 text-lg sm:text-xl text-muted-foreground">
-                CardSyncは、サービスの提供と向上のために、お客様のGoogleアカウント情報へアクセスします。
+                CardSyncは、Googleの堅牢なセキュリティ基盤の上で、あなたの貴重な情報を最大限に活用します。
               </p>
             </div>
             <div className="bg-card rounded-xl p-6 sm:p-8 shadow-lg max-w-4xl mx-auto">
               <p className="text-base sm:text-lg text-muted-foreground mb-6">
-                本アプリケーションでは、以下のGoogleユーザーデータへのアクセス権限をリクエストします。これらの権限は、CardSyncの主要機能を提供し、お客様の利便性を高めるために不可欠なものです。
+                私たちは、お客様のデータを「お預かりする」だけでなく、お客様のビジネスを「加速させる」ために、Googleアカウントの連携をお願いしています。
               </p>
               <ul className="space-y-4 mb-6">
                 <li className="flex items-start">
                   <Cloud className="h-6 w-6 text-primary mr-3 mt-1 flex-shrink-0" />
                   <div>
-                    <h4 className="font-semibold text-foreground text-lg">Google Driveのファイルへのアクセス</h4>
+                    <h4 className="font-semibold text-foreground text-lg">Google Drive: あなただけのセキュアな名刺バンク</h4>
                     <p className="text-muted-foreground text-sm sm:text-base">
-                      お客様がアップロードした名刺画像をGoogle Driveに安全に保存し、アプリケーション内で表示・処理するために使用します。これには、ファイルの読み取り、作成、編集の権限が含まれる場合があります。
+                      名刺画像は、あなた自身のGoogle Driveへ。アプリが画像を読み取り、整理整頓をお手伝いします。いつでもどこでも、安全にアクセス可能です。
                     </p>
                   </div>
                 </li>
                 <li className="flex items-start">
                   <Database className="h-6 w-6 text-primary mr-3 mt-1 flex-shrink-0" />
                   <div>
-                    <h4 className="font-semibold text-foreground text-lg">Googleスプレッドシートへのアクセス</h4>
+                    <h4 className="font-semibold text-foreground text-lg">Googleスプレッドシート: 自由自在な人脈データベース</h4>
                     <p className="text-muted-foreground text-sm sm:text-base">
-                      OCR処理によって名刺から抽出された情報を、お客様の指定するGoogleスプレッドシートに記録・整理するために使用します。これにより、データの管理と活用が容易になります。
+                      AIが読み取った情報は、あなた専用のスプレッドシートへ。検索、ソート、メモ追加、そして最新情報への更新も簡単。チームでの共有も、CRMへの連携もスムーズです。
                     </p>
                   </div>
                 </li>
               </ul>
               <p className="text-sm text-muted-foreground">
-                取得したデータは、上記の明示された目的以外で利用されることは一切ありません。お客様のプライバシー保護を最優先に考え、データの取り扱いには最大限の注意を払っています。詳細については、当社のプライバシーポリシーをご確認ください。
+                CardSyncは、お客様の許可なくデータを外部に提供したり、目的外に利用することはありません。あなたのプライバシーとデータの主権を尊重し、透明性の高いサービス運営をお約束します。詳細はプライバシーポリシーをご覧ください。
               </p>
             </div>
           </div>
@@ -242,10 +242,10 @@ export default function LandingPage() {
           <div className="container mx-auto">
             <div className="max-w-2xl mx-auto text-center bg-gradient-to-r from-primary/80 to-blue-700 p-8 sm:p-12 rounded-xl shadow-2xl">
               <h2 className="text-3xl sm:text-4xl font-bold mb-6 text-white">
-                ビジネスを加速させる準備はできましたか？
+                名刺管理の「次へ」進む準備は、できましたか？
               </h2>
               <p className="text-lg sm:text-xl text-primary-foreground mb-8">
-                今すぐCardSyncを導入し、名刺管理の新しいスタンダードを体験してください。
+                もう、名刺交換のたびにため息をつくのは終わりにしましょう。CardSyncで、未来志向のスマートな働き方を、今すぐ体験。
               </p>
               {session ? (
                 <Button asChild size="lg" className="w-full sm:w-auto text-lg py-3 px-8 bg-white text-primary hover:bg-gray-100">
