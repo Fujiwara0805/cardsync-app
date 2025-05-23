@@ -125,7 +125,6 @@ export default function DashboardAppLayout({ children }: { children: ReactNode }
                   animate={{ scale: isActive ? 1.15 : 1 }}
                   transition={{ type: "spring", stiffness: 300, damping: 15 }}
                 >
-                  {/* アイコンの色は親要素の text 色を継承するので、個別の色指定は不要になることが多い */}
                   <item.icon className="h-6 w-6" /> 
                 </motion.div>
                 <span className="text-xs mt-1">

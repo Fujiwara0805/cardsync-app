@@ -390,6 +390,50 @@ export default function DriveSync() {
     picker.setVisible(true);
   };
 
+  // 新しく追加: フォルダ選択用のPickerハンドラ
+  const handleOpenPickerForFolder = () => {
+    if (!gapiLoaded || !pickerApiLoaded) {
+      showNotification('Google Picker APIの準備ができていません。しばらく待つか、ページを再読み込みしてください。', 'error');
+      console.error('Picker API not loaded. gapiLoaded:', gapiLoaded, 'pickerApiLoaded:', pickerApiLoaded);
+      return;
+    }
+    if (!oauthToken) {
+      showNotification('Google認証トークンがありません。再度ログインしてください。', 'error');
+      return;
+    }
+    if (!DEVELOPER_KEY) {
+      showNotification('Google APIキーが設定されていません。管理者に連絡してください。', 'error');
+      return;
+    }
+    if (!APP_ID) {
+      showNotification('GoogleアプリケーションIDが設定されていません。管理者に連絡してください。', 'error');
+      return;
+    }
+
+    const view = new window.google.picker.DocsView(window.google.picker.ViewId.FOLDERS) // FOLDERSビューを使用
+      .setIncludeFolders(true)
+      .setMimeTypes("application/vnd.google-apps.folder"); // フォルダのMIMEタイプ
+
+    const picker = new window.google.picker.PickerBuilder()
+      .setAppId(APP_ID)
+      .setOAuthToken(oauthToken)
+      .setDeveloperKey(DEVELOPER_KEY)
+      .setLocale('ja')
+      .addView(view)
+      .setCallback((data: any) => {
+        if (data[window.google.picker.Response.ACTION] == window.google.picker.Action.PICKED) {
+          const doc = data[window.google.picker.Response.DOCUMENTS][0];
+          const fileId = doc[window.google.picker.Document.ID];
+          setFolderId(fileId); // Pickerで選択されたフォルダIDをStateにセット
+          showNotification(`フォルダが選択されました。ID: ${fileId}\n設定を保存してください。`, 'info');
+        } else if (data[window.google.picker.Response.ACTION] == window.google.picker.Action.CANCEL) {
+          showNotification('フォルダの選択がキャンセルされました。', 'info');
+        }
+      })
+      .build();
+    picker.setVisible(true);
+  };
+
   return (
     <div className="space-y-8">
       <motion.h1 
@@ -483,12 +527,12 @@ export default function DriveSync() {
                         フォルダの準備とフォルダIDのコピー
                       </p>
                       <p className="text-xs text-muted-foreground mt-1">
-                        Googleドライブ内に名刺画像保存用のフォルダを新規作成するか、既存のフォルダを使用します。
-                        そのフォルダを開き、ブラウザのアドレスバーに表示されるURLからフォルダIDをコピーしてください。
-                        フォルダIDは通常、URLの `folders/` の直後にあるランダムな文字列です。
+                        Googleドライブ内に名刺画像保存用のフォルダを新規作成してください。<br />（例：名刺管理フォルダ）<br />
+                        {/* そのフォルダを開き、ブラウザのアドレスバーに表示されるURLからフォルダIDをコピーしてください。<br />
+                        フォルダIDは通常、URLの `folders/` の直後にあるランダムな文字列です。<br />
                       </p>
                       <p className="text-xs text-muted-foreground mt-1 break-all">
-                        例: `https://drive.google.com/drive/folders/`<strong>`1a2B3c4D5e6F7g8H9i0JkLmNoPqRs`</strong> (太字部分がID)
+                        例: `https://drive.google.com/drive/folders/`<strong>`1a2B3c4D5e6F7g8H9i0JkLmNoPqRs`</strong> (太字部分がID) */}
                       </p>
                     </div>
                   </div>
@@ -504,7 +548,7 @@ export default function DriveSync() {
                         アクセス権の設定（重要）
                       </p>
                       <p className="text-xs text-muted-foreground mt-1">
-                        上記で準備したフォルダを、本アプリのサービスアカウントと共有し、**「閲覧者」**以上の権限を付与してください。
+                        上記で準備したフォルダを、サービスアカウントと共有し、<b>「閲覧者」</b>以上の権限を付与してください。
                         これにより、アプリがフォルダ内の名刺画像を読み取れるようになります。
                       </p>
                       <p className="text-xs text-muted-foreground mt-2">
@@ -537,19 +581,32 @@ export default function DriveSync() {
                         <div className="shrink-0 mr-3 mt-0.5">
                             <span className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-gray-500 text-white text-xs font-semibold">3</span>
                         </div>
-                        <div>
+                        <div className="min-w-0 flex-1">
                             <p className="text-sm font-medium text-gray-700 dark:text-gray-300">フォルダIDの入力</p>
                             <p className="text-xs text-muted-foreground mt-1 mb-2">
-                                上記の手順が完了したら、コピーしたフォルダIDを下の欄に入力してください。
+                            上記の手順が完了したら、歯車アイコンを押下して作成したファイルを選択してください。
                             </p>
-                            <Input
-                                id="folderId"
-                                placeholder="Google DriveのフォルダIDを入力"
-                                value={folderId}
-                                onChange={(e) => setFolderId(e.target.value)}
-                                disabled={!isEditing || isSaving}
-                                className={cn("bg-background", !isEditing && hasExistingSettings && "bg-gray-100 dark:bg-gray-800")}
-                            />
+                            <div className="flex items-center gap-2">
+                              <Input
+                                  id="folderId"
+                                  placeholder="Google DriveのフォルダIDを入力"
+                                  value={folderId}
+                                  onChange={(e) => setFolderId(e.target.value)}
+                                  disabled={!isEditing || isSaving}
+                                  className={cn("bg-background flex-grow", !isEditing && hasExistingSettings && "bg-gray-100 dark:bg-gray-800")}
+                              />
+                              <Button
+                                onClick={handleOpenPickerForFolder}
+                                variant="outline"
+                                size="icon"
+                                disabled={!isEditing || isSaving || !gapiLoaded || !pickerApiLoaded || !oauthToken || isLoadingSession}
+                                title="Google Pickerでフォルダを選択"
+                              >
+                                <Settings size={18} /> 
+                                <span className="sr-only">フォルダを選択</span>
+                              </Button>
+                            </div>
+                            {(!gapiLoaded || !pickerApiLoaded && isAuthenticated ) && <p className="text-xs text-destructive mt-1">Picker APIの読み込み中です...</p>}
                         </div>
                     </div>
                 </div>
@@ -584,13 +641,11 @@ export default function DriveSync() {
                         <div className="min-w-0 flex-1">
                             <p className="text-sm font-medium text-blue-700 dark:text-blue-300">スプレッドシートの準備とIDのコピー</p>
                             <p className="text-xs text-muted-foreground mt-1">
-                                Googleスプレッドシートを新規作成するか、既存のものを使用します。
-                                そのスプレッドシートを開き、ブラウザのアドレスバーに表示されるURLからIDをコピーしてください。
-                                IDは通常、URLの `/d/` と `/edit` の間のランダムな文字列です。
+                                Googleスプレッドシートを新規作成してください。新規作成する際には、ファイル名とシート名を<b>名刺管理データベース</b>としてください。
                             </p>
-                             <p className="text-xs text-muted-foreground mt-1 break-all">
+                             {/* <p className="text-xs text-muted-foreground mt-1 break-all">
                                 例: `https://docs.google.com/spreadsheets/d/`<strong>`1a2B3c4D5e6F7g8H9i0JkLmNoPqRs`</strong>`/edit` (太字部分がID)
-                            </p>
+                            </p> */}
                         </div>
                     </div>
                 </div>
@@ -605,7 +660,7 @@ export default function DriveSync() {
                         アクセス権の設定（重要）
                       </p>
                       <p className="text-xs text-muted-foreground mt-1">
-                        上記で準備したスプレッドシートを、本アプリのサービスアカウントと共有し、**「編集者」**権限を付与してください。
+                        上記で準備したスプレッドシートを、サービスアカウントと共有し、<b>「編集者」</b>権限を付与してください。
                         これにより、アプリが抽出した名刺管理データベースをシートに書き込めるようになります。
                       </p>
                       <p className="text-xs text-muted-foreground mt-2">
@@ -639,7 +694,7 @@ export default function DriveSync() {
                         <div className="min-w-0 flex-1">
                             <p className="text-sm font-medium text-gray-700 dark:text-gray-300">スプレッドシートIDの入力</p>
                             <p className="text-xs text-muted-foreground mt-1 mb-2">
-                                上記の手順が完了したら、コピーしたスプレッドシートIDを下の欄に入力するか、「スプレッドシートを選択」ボタンでファイルを選択してください。
+                                上記の手順が完了したら、歯車アイコンを押下して作成したファイルを選択してください。
                             </p>
                             <div className="flex items-center gap-2">
                               <Input

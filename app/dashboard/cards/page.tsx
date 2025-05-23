@@ -1,10 +1,10 @@
 'use client'; // 検索機能をクライアントサイドで行うため 'use client' に変更
 
-import { useState, useEffect, useMemo, useCallback } from 'react'; // useState, useEffect, useMemo, useCallback をインポート
+import { useState, useEffect, useMemo, useCallback } from 'react'; // useState, 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input"; // Input をインポート
 import { AspectRatio } from "@/components/ui/aspect-ratio";
-import { Clock, FileText, Search, MessageSquareText, ImageOff, ChevronLeft, ChevronRight, Pencil, Loader2, Trash2, AlertTriangle } from 'lucide-react'; // Search, MessageSquareText, ImageOff, ChevronLeft, ChevronRight, Pencil, Loader2, Trash2, AlertTriangle をインポート
+import { Clock, FileText, Search, MessageSquareText, ImageOff, ChevronLeft, ChevronRight, Pencil, Loader2, Trash2, AlertTriangle } from 'lucide-react'; // Search, 
 import EmptyState from '@/components/dashboard/empty-state';
 import { Skeleton } from "@/components/ui/skeleton"; // スケルトンローディング用
 import { Button } from "@/components/ui/button"; // Button をインポート
@@ -43,10 +43,16 @@ function CardSkeleton() {
   );
 }
 
-function BusinessCardImageItem({ file, onEdit, onDelete }: { 
+function BusinessCardImageItem({ 
+  file, 
+  onEdit, 
+  onDelete,
+  onImageClick
+}: { 
   file: DriveFile; 
   onEdit: (file: DriveFile) => void; 
   onDelete: (file: DriveFile) => void;
+  onImageClick: (fileId: string, fileName: string) => void;
 }) {
   const displayDate = file.sheetModifiedDate 
     ? new Date(file.sheetModifiedDate).toLocaleDateString('ja-JP', {
@@ -72,58 +78,60 @@ function BusinessCardImageItem({ file, onEdit, onDelete }: {
     >
     <Card className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col h-full">
       <CardHeader className="p-4 pb-2 flex flex-row justify-between items-start">
-        <CardTitle className="text-base font-semibold truncate flex items-center mr-2">
-          <FileText className="w-4 h-4 mr-2 text-muted-foreground shrink-0" />
+        <CardTitle className="text-lg font-semibold truncate flex items-center mr-2">
+          <FileText className="w-5 h-5 mr-2 text-muted-foreground shrink-0" />
           <span className="truncate" title={file.name}>{file.name}</span>
         </CardTitle>
           <div className="flex shrink-0 space-x-1">
-            <Button variant="ghost" size="icon" onClick={() => onEdit(file)} className="h-8 w-8">
-          <Pencil className="h-4 w-4" />
+            <Button variant="ghost" size="icon" onClick={() => onEdit(file)} className="h-9 w-9">
+          <Pencil className="h-5 w-5" />
         </Button>
-            <Button variant="ghost" size="icon" onClick={() => onDelete(file)} className="h-8 w-8 text-red-500 hover:text-red-700">
-              <Trash2 className="h-4 w-4" />
+            <Button variant="ghost" size="icon" onClick={() => onDelete(file)} className="h-9 w-9 text-red-500 hover:text-red-700">
+              <Trash2 className="h-5 w-5" />
             </Button>
           </div>
       </CardHeader>
       <CardContent className="p-0 flex-grow flex flex-col justify-center">
-        <AspectRatio ratio={16 / 9} className="bg-muted">
-          {imageError ? (
-            <div className="flex flex-col items-center justify-center h-full text-xs text-red-600 p-2">
-              <ImageOff className="w-8 h-8 mb-1" />
-              <span>画像表示エラー</span>
-              {file.webViewLink && (
-                <a 
-                    href={file.webViewLink} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="text-blue-600 hover:underline mt-1"
-                >
-                    Google Driveで表示
-                </a>
-              )}
-            </div>
-          ) : (
-            <img
-              src={`/api/get-image/${file.id}`}
-              alt={`名刺画像: ${file.name}`}
-              className="object-contain w-full h-full"
-              onError={() => setImageError(true)}
-              loading="lazy" // 遅延読み込み
-            />
-          )}
-        </AspectRatio>
+        <div onClick={() => !imageError && onImageClick(file.id, file.name)} className="cursor-pointer">
+          <AspectRatio ratio={16 / 9} className="bg-muted">
+            {imageError ? (
+              <div className="flex flex-col items-center justify-center h-full text-xs text-red-600 p-2">
+                <ImageOff className="w-8 h-8 mb-1" />
+                <span>画像表示エラー</span>
+                {file.webViewLink && (
+                  <a 
+                      href={file.webViewLink} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="text-blue-600 hover:underline mt-1"
+                  >
+                      Google Driveで表示
+                  </a>
+                )}
+              </div>
+            ) : (
+              <img
+                src={`/api/get-image/${file.id}`}
+                alt={`名刺画像: ${file.name}`}
+                className="object-contain w-full h-full"
+                onError={() => setImageError(true)}
+                loading="lazy" // 遅延読み込み
+              />
+            )}
+          </AspectRatio>
+        </div>
       </CardContent>
       {file.memo && (
         <div className="p-4 border-t">
-          <div className="flex items-start text-xs text-muted-foreground">
-            <MessageSquareText className="w-4 h-4 mr-2 mt-0.5 shrink-0" />
+          <div className="flex items-start text-sm text-muted-foreground">
+            <MessageSquareText className="w-5 h-5 mr-2 mt-0.5 shrink-0" />
             <p className="break-all line-clamp-3" title={file.memo}>{file.memo}</p>
           </div>
         </div>
       )}
-      <CardFooter className="p-4 text-xs text-muted-foreground border-t">
-        <div className="flex items-center">
-          <Clock className="w-3 h-3 mr-1.5" />
+      <CardFooter className="p-4 text-muted-foreground border-t">
+        <div className="flex items-center text-sm">
+          <Clock className="w-4 h-4 mr-1.5" />
           <span>最終更新: {displayDate}</span>
         </div>
       </CardFooter>
@@ -166,6 +174,10 @@ export default function BusinessCardsListPage() {
     setNotification({ isOpen: true, message, type });
   };
   // ----------------------------
+
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+  const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
+  const [selectedImageName, setSelectedImageName] = useState<string | null>(null);
 
   const fetchCardData = useCallback(async () => {
     setIsLoading(true);
@@ -324,6 +336,20 @@ export default function BusinessCardsListPage() {
   };
   // ----------------------------
 
+  // --- 画像拡大モーダル用関数 ---
+  const handleImageModalOpen = (fileId: string, fileName: string) => {
+    setSelectedImageId(fileId);
+    setSelectedImageName(fileName);
+    setIsImageModalOpen(true);
+  };
+
+  const handleImageModalClose = () => {
+    setIsImageModalOpen(false);
+    setSelectedImageId(null);
+    setSelectedImageName(null);
+  };
+  // ----------------------------
+
   if (isLoading) { // このローディングはページ全体の初期読み込み用
     // ヘッダー・フッターを共通レイアウトで表示している場合、
     // ここではコンテンツエリアのみのローディング表示（例：スケルトン表示）にすると良いでしょう。
@@ -368,23 +394,27 @@ export default function BusinessCardsListPage() {
       ) : (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-            {currentDisplayImages.map((file) => (
+            {isLoading && Array.from({ length: ITEMS_PER_PAGE }).map((_, index) => <CardSkeleton key={index} />)}
+            {!isLoading && currentDisplayImages.map((file) => (
               <BusinessCardImageItem 
                 key={file.id} 
                 file={file} 
                 onEdit={handleEditModalOpen} 
                 onDelete={handleDeleteModalOpen}
+                onImageClick={handleImageModalOpen}
               />
             ))}
           </div>
           {totalPages > 1 && (
             <div className="mt-8 flex justify-center items-center space-x-4">
-              <Button onClick={handlePreviousPage} disabled={currentPage === 1} variant="outline">
-                <ChevronLeft className="h-4 w-4 mr-1" /> 前へ
+              <Button onClick={handlePreviousPage} disabled={currentPage === 1} variant="outline" className="px-4 py-2 text-base">
+                <ChevronLeft className="h-5 w-5 mr-1" />
+                前へ
               </Button>
-              <span className="text-sm text-muted-foreground">{currentPage} / {totalPages} ページ</span>
-              <Button onClick={handleNextPage} disabled={currentPage === totalPages} variant="outline">
-                次へ <ChevronRight className="h-4 w-4 ml-1" />
+              <span className="text-base text-muted-foreground">{currentPage} / {totalPages} ページ</span>
+              <Button onClick={handleNextPage} disabled={currentPage === totalPages} variant="outline" className="px-4 py-2 text-base">
+                次へ
+                <ChevronRight className="h-5 w-5 ml-1" />
               </Button>
             </div>
           )}
@@ -485,6 +515,31 @@ export default function BusinessCardsListPage() {
                   '削除する'
                 )}
               </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+      {/* ------------------ */}
+
+      {/* --- 画像拡大表示モーダル --- */}
+      {selectedImageId && (
+        <Dialog open={isImageModalOpen} onOpenChange={(isOpen) => { if(!isOpen) handleImageModalClose(); else setIsImageModalOpen(true); }}>
+          <DialogContent className="max-w-3xl w-[90vw] p-2 sm:p-4">
+            <DialogHeader className="mb-2">
+              <DialogTitle className="truncate text-lg">{selectedImageName || '画像プレビュー'}</DialogTitle>
+            </DialogHeader>
+            <div className="relative w-full h-auto max-h-[80vh] overflow-hidden flex justify-center items-center bg-muted rounded-md">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={`/api/get-image/${selectedImageId}`}
+                alt={selectedImageName || '拡大画像'}
+                className="max-w-full max-h-[80vh] object-contain"
+              />
+            </div>
+            <DialogFooter className="mt-3 sm:mt-4">
+              <DialogClose asChild>
+                <Button type="button" variant="outline">閉じる</Button>
+              </DialogClose>
             </DialogFooter>
           </DialogContent>
         </Dialog>

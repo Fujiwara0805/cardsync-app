@@ -26,11 +26,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ja" suppressHydrationWarning>
-      <head /> {/* Next.js 13+ App Routerでは、ここに明示的な<head>タグは通常不要で、metadataオブジェクトから自動生成されますが、カスタムの<meta>タグなどを追加したい場合は記述できます。 */}
+      <head />
       <body
         className={cn(
           'min-h-screen bg-background font-sans antialiased',
-          fontSans.variable // グローバルなフォント設定
+          fontSans.variable
         )}
       >
         <AppBody>{children}</AppBody>

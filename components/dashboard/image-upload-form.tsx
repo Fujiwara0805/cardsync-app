@@ -131,7 +131,7 @@ export default function ImageUploadForm() {
       <Card className="max-w-2xl mx-auto shadow-xl">
         <CardHeader>
           <CardTitle className="flex items-center text-2xl font-semibold">
-            <UploadCloud className="mr-3 h-7 w-7 text-primary" />
+            <UploadCloud className="mr-3 h-7 w-7 text-primary " />
             名刺アップロード
           </CardTitle>
           <CardDescription>
