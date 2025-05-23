@@ -54,7 +54,7 @@ function BusinessCardImageItem({ file, onEdit, onDelete }: {
       }) 
     : (file.modifiedTime 
         ? new Date(file.modifiedTime).toLocaleDateString('ja-JP', {
-    year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+            year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
           }) 
         : '日時不明');
 
@@ -70,64 +70,64 @@ function BusinessCardImageItem({ file, onEdit, onDelete }: {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-    <Card className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col h-full">
-      <CardHeader className="p-4 pb-2 flex flex-row justify-between items-start">
-        <CardTitle className="text-base font-semibold truncate flex items-center mr-2">
-          <FileText className="w-4 h-4 mr-2 text-muted-foreground shrink-0" />
-          <span className="truncate" title={file.name}>{file.name}</span>
-        </CardTitle>
+      <Card className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col h-full">
+        <CardHeader className="p-4 pb-2 flex flex-row justify-between items-start">
+          <CardTitle className="text-base font-semibold truncate flex items-center mr-2">
+            <FileText className="w-4 h-4 mr-2 text-muted-foreground shrink-0" />
+            <span className="truncate" title={file.name}>{file.name}</span>
+          </CardTitle>
           <div className="flex shrink-0 space-x-1">
             <Button variant="ghost" size="icon" onClick={() => onEdit(file)} className="h-8 w-8">
-          <Pencil className="h-4 w-4" />
-        </Button>
+              <Pencil className="h-4 w-4" />
+            </Button>
             <Button variant="ghost" size="icon" onClick={() => onDelete(file)} className="h-8 w-8 text-red-500 hover:text-red-700">
               <Trash2 className="h-4 w-4" />
             </Button>
           </div>
-      </CardHeader>
-      <CardContent className="p-0 flex-grow flex flex-col justify-center">
-        <AspectRatio ratio={16 / 9} className="bg-muted">
-          {imageError ? (
-            <div className="flex flex-col items-center justify-center h-full text-xs text-red-600 p-2">
-              <ImageOff className="w-8 h-8 mb-1" />
-              <span>画像表示エラー</span>
-              {file.webViewLink && (
-                <a 
-                    href={file.webViewLink} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="text-blue-600 hover:underline mt-1"
-                >
-                    Google Driveで表示
-                </a>
-              )}
+        </CardHeader>
+        <CardContent className="p-0 flex-grow flex flex-col justify-center">
+          <AspectRatio ratio={16 / 9} className="bg-muted">
+            {imageError ? (
+              <div className="flex flex-col items-center justify-center h-full text-xs text-red-600 p-2">
+                <ImageOff className="w-8 h-8 mb-1" />
+                <span>画像表示エラー</span>
+                {file.webViewLink && (
+                  <a 
+                      href={file.webViewLink} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="text-blue-600 hover:underline mt-1"
+                  >
+                      Google Driveで表示
+                  </a>
+                )}
+              </div>
+            ) : (
+              <img
+                src={`/api/get-image/${file.id}`}
+                alt={`名刺画像: ${file.name}`}
+                className="object-contain w-full h-full"
+                onError={() => setImageError(true)}
+                loading="lazy" // 遅延読み込み
+              />
+            )}
+          </AspectRatio>
+        </CardContent>
+        {file.memo && (
+          <div className="p-4 border-t">
+            <div className="flex items-start text-xs text-muted-foreground">
+              <MessageSquareText className="w-4 h-4 mr-2 mt-0.5 shrink-0" />
+              <p className="break-all line-clamp-3" title={file.memo}>{file.memo}</p>
             </div>
-          ) : (
-            <img
-              src={`/api/get-image/${file.id}`}
-              alt={`名刺画像: ${file.name}`}
-              className="object-contain w-full h-full"
-              onError={() => setImageError(true)}
-              loading="lazy" // 遅延読み込み
-            />
-          )}
-        </AspectRatio>
-      </CardContent>
-      {file.memo && (
-        <div className="p-4 border-t">
-          <div className="flex items-start text-xs text-muted-foreground">
-            <MessageSquareText className="w-4 h-4 mr-2 mt-0.5 shrink-0" />
-            <p className="break-all line-clamp-3" title={file.memo}>{file.memo}</p>
           </div>
-        </div>
-      )}
-      <CardFooter className="p-4 text-xs text-muted-foreground border-t">
-        <div className="flex items-center">
-          <Clock className="w-3 h-3 mr-1.5" />
-          <span>最終更新: {displayDate}</span>
-        </div>
-      </CardFooter>
-    </Card>
+        )}
+        <CardFooter className="p-4 text-xs text-muted-foreground border-t">
+          <div className="flex items-center">
+            <Clock className="w-3 h-3 mr-1.5" />
+            <span>最終更新: {displayDate}</span>
+          </div>
+        </CardFooter>
+      </Card>
     </motion.div>
   );
 }
@@ -192,7 +192,7 @@ export default function BusinessCardsListPage() {
       const mergedData = driveFiles.map(file => {
         const info = cardInfoMap[file.name];
         return {
-        ...file,
+          ...file,
           memo: info?.memo || '',
           sheetModifiedDate: info?.sheetModifiedDate || '', // スプレッドシートの更新日時をマージ
         };
