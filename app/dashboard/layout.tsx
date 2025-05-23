@@ -108,7 +108,7 @@ export default function DashboardAppLayout({ children }: { children: ReactNode }
       </div>
 
       {/* モバイル用下部ナビゲーション */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-muted border-t border-border flex justify-around items-center h-16 z-30 shadow-md"> {/* MODIFIED: shadow- ऊपर を shadow-md に変更 */}
+      {/* <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-muted border-t border-border flex justify-around items-center h-16 z-30 shadow-md">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           return (
@@ -134,7 +134,7 @@ export default function DashboardAppLayout({ children }: { children: ReactNode }
             </Link>
           );
         })}
-      </div>
+      </div> */}
     </div>
   );
 }
