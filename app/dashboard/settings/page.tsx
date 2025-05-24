@@ -9,8 +9,8 @@ import { Separator } from "@/components/ui/separator";
 export default function SettingsPage() {
   return (
     <div className="container mx-auto px-4 py-8 space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold mb-2">設定</h1>
+      <div className="flex items-center justify-center mb-6">
+        <h1 className="text-3xl font-bold mb-2 text-primary">設定</h1>
         <p className="text-muted-foreground">
           各種設定や法的情報を確認できます。
         </p>

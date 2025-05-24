@@ -475,7 +475,7 @@ export default function DriveSync() {
               <Button 
                 onClick={session?.user ? handleGoogleSignOut : handleGoogleSignIn}
                 className="w-full"
-                variant={session?.user ? "outline" : "secondary"}
+                variant={session?.user ? "default" : "secondary"}
                 disabled={isLoadingSession}
               >
                 {session?.user ? (

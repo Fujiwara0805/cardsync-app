@@ -9,8 +9,8 @@ export default function NotificationsPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold">お知らせ</h1>
+      <div className="flex items-center justify-center mb-6">
+        <h1 className="text-3xl font-bold text-primary">お知らせ</h1>
         {/* <Button size="sm">すべて既読にする</Button> */}
       </div>
 

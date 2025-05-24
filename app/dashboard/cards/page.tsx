@@ -443,29 +443,29 @@ export default function BusinessCardsListPage() {
         <Dialog open={isEditModalOpen} onOpenChange={(isOpen) => { if(!isOpen) handleEditModalClose(); else setIsEditModalOpen(true);}}>
           <DialogContent className="sm:max-w-[480px] w-[90vw] max-w-[400px] sm:w-full">
             <DialogHeader>
-              <DialogTitle>名刺情報の編集</DialogTitle>
+              <DialogTitle className="text-xl sm:text-2xl font-bold text-primary">名刺情報の編集</DialogTitle>
               <DialogDescription>
                 ファイル名とメモを編集します。変更はGoogle Driveとスプレッドシートに反映されます。
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="fileName" className="text-right">ファイル名</Label>
+                <Label htmlFor="fileName" className="text-right text-primary">ファイル名</Label>
                 <Input 
                   id="fileName" 
                   value={editedFileName} 
                   onChange={(e) => setEditedFileName(e.target.value)} 
-                  className="col-span-3" 
+                  className="col-span-3 text-gray-700" 
                   disabled={isSaving}
                 />
               </div>
               <div className="grid grid-cols-4 items-start gap-4">
-                <Label htmlFor="memo" className="text-right pt-2">メモ</Label>
+                <Label htmlFor="memo" className="text-right pt-2 text-primary">メモ</Label>
                 <Textarea 
                   id="memo" 
                   value={editedMemo} 
                   onChange={(e) => setEditedMemo(e.target.value)} 
-                  className="col-span-3 min-h-[100px]"
+                  className="col-span-3 min-h-[100px] text-gray-700"
                   disabled={isSaving}
                 />
               </div>
@@ -475,7 +475,7 @@ export default function BusinessCardsListPage() {
             </div>
             <DialogFooter className="flex flex-row justify-end gap-2">
               <DialogClose asChild>
-                <Button type="button" variant="outline" disabled={isSaving} size="sm">キャンセル</Button>
+                <Button type="button" variant="secondary" disabled={isSaving} size="sm">キャンセル</Button>
               </DialogClose>
               <Button type="button" onClick={handleSaveChanges} disabled={isSaving || !editedFileName.trim()} size="sm">
                 {isSaving ? (
@@ -507,14 +507,14 @@ export default function BusinessCardsListPage() {
               </DialogDescription>
             </DialogHeader>
             <div className="py-4">
-              <p className="font-semibold mb-2">削除する名刺：</p>
+              <p className="font-semibold mb-2 text-primary">削除する名刺：</p>
               <div className="p-3 bg-red-50 border border-red-200 rounded-md">
                 <span className="text-gray-700">{deletingFile.name}</span>
               </div>
             </div>
             <DialogFooter className="flex flex-row justify-end gap-2">
               <DialogClose asChild>
-                <Button type="button" variant="outline" disabled={isDeleting} size="sm">キャンセル</Button>
+                <Button type="button" variant="secondary" disabled={isDeleting} size="sm">キャンセル</Button>
               </DialogClose>
               <Button 
                 type="button" 
@@ -543,7 +543,7 @@ export default function BusinessCardsListPage() {
         <Dialog open={isImageModalOpen} onOpenChange={(isOpen) => { if(!isOpen) handleImageModalClose(); else setIsImageModalOpen(true); }}>
           <DialogContent className="max-w-3xl w-[90vw] p-2 sm:p-4">
             <DialogHeader className="mb-2">
-              <DialogTitle className="truncate text-lg">{selectedImageName || '画像プレビュー'}</DialogTitle>
+              <DialogTitle className="truncate text-lg text-secondary">{selectedImageName || '画像プレビュー'}</DialogTitle>
             </DialogHeader>
             <div className="relative w-full h-auto max-h-[80vh] overflow-hidden flex justify-center items-center bg-muted rounded-md">
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -555,7 +555,7 @@ export default function BusinessCardsListPage() {
             </div>
             <DialogFooter className="mt-3 sm:mt-4">
               <DialogClose asChild>
-                <Button type="button" variant="outline">閉じる</Button>
+                <Button type="button" variant="secondary">閉じる</Button>
               </DialogClose>
             </DialogFooter>
           </DialogContent>
@@ -567,19 +567,19 @@ export default function BusinessCardsListPage() {
       <Dialog open={isInfoModalOpen} onOpenChange={setIsInfoModalOpen}>
         <DialogContent className="sm:max-w-[500px] w-[95vw] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle  >画像が表示されない場合</DialogTitle>
+            <DialogTitle className="text-xl sm:text-2xl font-bold text-primary">画像が表示されない場合</DialogTitle>
             <DialogDescription>
               名刺画像が表示されない場合は、Googleアカウントの認証状態に問題がある可能性があります。
             </DialogDescription>
           </DialogHeader>
           <div className="py-4 flex flex-col items-center gap-4">
-            <p className="text-base text-red-700 dark:text-gray-300 text-center">
+            <p className="text-base text-red-700 text-center">
               お手数ですが一度Googleアカウントから<br />ログアウトし、再度ログインし直してください。<br />
             </p>
           </div>
           <DialogFooter>
             <DialogClose asChild>
-              <Button type="button" variant="outline">閉じる</Button>
+              <Button type="button" variant="secondary">閉じる</Button>
             </DialogClose>
           </DialogFooter>
         </DialogContent>

@@ -168,7 +168,7 @@ export default function LandingPage() {
         <section id="features" className="py-16 md:py-20 bg-muted/30 px-4">
           <div className="container mx-auto">
             <div className="text-center mb-12 sm:mb-16">
-              <h2 className="text-xl sm:text-2xl font-bold text-primary">CardSyncが選ばれる理由</h2>
+              <h2 className="text-2xl sm:text-3xl font-bold text-primary">CardSyncが選ばれる理由</h2>
               <p className="mt-4 sm:mt-5 text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto">
                 名刺管理の「あったらいいな」を全て凝縮。あなたのビジネスを次のステージへ導く、CardSyncだけの価値を体験してください。
               </p>
@@ -199,8 +199,8 @@ export default function LandingPage() {
         <section className="py-16 md:py-20 px-4">
           <div className="container mx-auto">
             <div className="max-w-3xl mx-auto text-center mb-12 sm:mb-16">
-              <h2 className="text-xl sm:text-2xl font-bold text-primary">
-                あなたのデータは、安全かつスマートに。
+              <h2 className="text-2xl sm:text-3xl font-bold text-primary">
+                あなたのデータを、安全かつスマートに。
               </h2>
               <p className="mt-4 sm:mt-5 text-lg sm:text-xl text-muted-foreground">
                 CardSyncは、Googleの堅牢なセキュリティ基盤の上で、あなたの貴重な情報を最大限に活用します。
