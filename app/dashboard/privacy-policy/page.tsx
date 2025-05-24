@@ -8,14 +8,14 @@ export default function PrivacyPolicyPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-6">
-        <Button variant="default" size="sm" asChild>
+        <Button variant="secondary" size="sm" asChild>
           <Link href="/dashboard/settings">
             <ArrowLeft className="mr-2 h-4 w-4" />
             設定に戻る
           </Link>
         </Button>
       </div>
-      <h1 className="text-3xl font-bold mb-6">プライバシーポリシー</h1>
+      <h1 className="text-3xl font-bold mb-6 text-primary">プライバシーポリシー</h1>
       <div className="prose dark:prose-invert max-w-none bg-card p-6 rounded-lg shadow">
         <p><strong>最終更新日:</strong> 2025年5月10日</p>
 
