@@ -728,7 +728,7 @@ export default function DriveSync() {
             <Card className="shadow-md hover:shadow-lg transition-shadow duration-300">
               <CardHeader className="pb-4">
                 <CardTitle className="text-xl font-semibold">
-                  {hasExistingSettings ? '設定の更新と名刺同期' : '設定の保存と名刺同期'}
+                  {hasExistingSettings ? '設定の更新と同期処理(一括登録)' : '設定の保存と同期処理(一括登録)'}
                 </CardTitle>
                 <CardDescription className="pt-1">
                   {hasExistingSettings 

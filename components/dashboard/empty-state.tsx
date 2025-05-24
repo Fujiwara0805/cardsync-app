@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { FolderUp, Upload, ImageOff } from 'lucide-react';
 import { type LucideIcon } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 interface EmptyStateProps {
   title: string;
@@ -15,6 +16,15 @@ interface EmptyStateProps {
 
 export default function EmptyState({ title, description, iconName, actionButton }: EmptyStateProps) {
   const IconComponent = iconName ? require('lucide-react')[iconName] as LucideIcon : ImageOff;
+  const router = useRouter();
+
+  const handleUploadClick = () => {
+    router.push('/dashboard/image-upload');
+  };
+
+  const handleDriveSettingsClick = () => {
+    router.push('/dashboard');
+  };
 
   return (
     <motion.div
@@ -30,11 +40,11 @@ export default function EmptyState({ title, description, iconName, actionButton 
       <p className="text-muted-foreground max-w-md mb-6">{description}</p>
       {actionButton && <div className="mt-6">{actionButton}</div>}
       <div className="flex flex-col sm:flex-row gap-4">
-        <Button>
+        <Button onClick={handleUploadClick}>
           <Upload className="mr-2 h-4 w-4" />
           名刺をアップロード
         </Button>
-        <Button variant="outline">
+        <Button variant="outline" onClick={handleDriveSettingsClick}>
           Google Drive設定を確認
         </Button>
       </div>

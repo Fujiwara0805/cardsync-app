@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react'; // useState,
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input"; // Input をインポート
 import { AspectRatio } from "@/components/ui/aspect-ratio";
-import { Clock, FileText, Search, MessageSquareText, ImageOff, ChevronLeft, ChevronRight, Pencil, Loader2, Trash2, AlertTriangle } from 'lucide-react'; // Search, 
+import { Clock, FileText, Search, MessageSquareText, ImageOff, ChevronLeft, ChevronRight, Pencil, Loader2, Trash2, AlertTriangle, Info } from 'lucide-react'; // Search, Info アイコンを追加
 import EmptyState from '@/components/dashboard/empty-state';
 import { Skeleton } from "@/components/ui/skeleton"; // スケルトンローディング用
 import { Button } from "@/components/ui/button"; // Button をインポート
@@ -178,6 +178,10 @@ export default function BusinessCardsListPage() {
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
   const [selectedImageName, setSelectedImageName] = useState<string | null>(null);
+
+  // --- 情報モーダル用 State (NEW) ---
+  const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
+  // ----------------------------------
 
   const fetchCardData = useCallback(async () => {
     setIsLoading(true);
@@ -362,7 +366,7 @@ export default function BusinessCardsListPage() {
     );
   }
 
-  if (error && !isEditModalOpen && !isDeleteModalOpen) { // モーダル表示中はメインのエラー表示をしない
+  if (error && !isEditModalOpen && !isDeleteModalOpen && !isInfoModalOpen) { // 情報モーダル表示中もエラー表示をしない
     return (
       <div className="container mx-auto px-4 py-8">
         <EmptyState title="エラー" description={error} iconName="AlertTriangle" />
@@ -383,6 +387,19 @@ export default function BusinessCardsListPage() {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
+        {/* 画像が表示されない時の注釈 (NEW) */}
+        {filteredCardImages.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
+            className="mt-4 text-sm text-red-400 flex items-center cursor-pointer hover:text-primary transition-colors duration-200"
+            onClick={() => setIsInfoModalOpen(true)} // クリックでモーダルを開く
+          >
+            <Info className="h-4 w-4 mr-1 shrink-0" />
+            <span>画像が表示されないときは...</span>
+          </motion.div>
+        )}
       </div>
 
       {currentDisplayImages.length === 0 ? (
@@ -545,6 +562,29 @@ export default function BusinessCardsListPage() {
         </Dialog>
       )}
       {/* ------------------ */}
+
+      {/* --- 画像が表示されない時の情報モーダル (NEW) --- */}
+      <Dialog open={isInfoModalOpen} onOpenChange={setIsInfoModalOpen}>
+        <DialogContent className="sm:max-w-[500px] w-[95vw] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle  >画像が表示されない場合</DialogTitle>
+            <DialogDescription>
+              名刺画像が表示されない場合は、Googleアカウントの認証状態に問題がある可能性があります。
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 flex flex-col items-center gap-4">
+            <p className="text-base text-red-700 dark:text-gray-300 text-center">
+              お手数ですが一度Googleアカウントから<br />ログアウトし、再度ログインし直してください。<br />
+            </p>
+          </div>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button type="button" variant="outline">閉じる</Button>
+            </DialogClose>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      {/* --------------------------------------------- */}
 
       <ToastNotification
         isOpen={notification.isOpen}

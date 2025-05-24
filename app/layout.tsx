@@ -13,11 +13,33 @@ export const metadata: Metadata = {
   title: 'CardSync',
   description: 'CardSyncは、Google Driveのスプレッドシートと連携して、名刺情報を管理するアプリです。',
   icons: {
-    icon: 'https://res.cloudinary.com/dz9trbwma/image/upload/v1747987887/CardSync_rr3hvh.png',
-    shortcut: 'https://res.cloudinary.com/dz9trbwma/image/upload/v1747987887/CardSync_rr3hvh.png',
-    apple: 'https://res.cloudinary.com/dz9trbwma/image/upload/v1747987887/CardSync_rr3hvh.png',
+    // ブラウザのタブ／ブックマーク用
+    icon: [
+      {
+        url: 'https://res.cloudinary.com/dz9trbwma/image/upload/v1748066466/ChatGPT_Image_2025%E5%B9%B45%E6%9C%8824%E6%97%A5_15_00_50_qdclh9.png',
+        sizes: '16x16',
+        type: 'image/png',
+      },
+      {
+        url: 'https://res.cloudinary.com/dz9trbwma/image/upload/v1748066466/ChatGPT_Image_2025%E5%B9%B45%E6%9C%8824%E6%97%A5_15_00_50_qdclh9.png',
+        sizes: '32x32',
+        type: 'image/png',
+      },
+    ],
+    // Windows ショートカットや一部のブラウザ向け
+    shortcut: {
+      url: 'https://res.cloudinary.com/dz9trbwma/image/upload/v1748066466/ChatGPT_Image_2025%E5%B9%B45%E6%9C%8824%E6%97%A5_15_00_50_qdclh9.png',
+      sizes: '48x48',
+      type: 'image/png',
+    },
+    // iOS ホーム画面に追加したときに使われる Apple Touch Icon
+    apple: {
+      url: 'https://res.cloudinary.com/dz9trbwma/image/upload/v1748066466/ChatGPT_Image_2025%E5%B9%B45%E6%9C%8824%E6%97%A5_15_00_50_qdclh9.png',
+      sizes: '180x180',
+      type: 'image/png',
+    },
   },
-};
+}
 
 export default function RootLayout({
   children,
