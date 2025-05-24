@@ -440,7 +440,7 @@ export default function DriveSync() {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="text-3xl font-bold text-foreground"
+        className="text-3xl font-bold text-primary"
       >
         Googleサービス連携設定
       </motion.h1>
@@ -475,7 +475,7 @@ export default function DriveSync() {
               <Button 
                 onClick={session?.user ? handleGoogleSignOut : handleGoogleSignIn}
                 className="w-full"
-                variant={session?.user ? "outline" : "default"}
+                variant={session?.user ? "outline" : "secondary"}
                 disabled={isLoadingSession}
               >
                 {session?.user ? (
@@ -597,7 +597,7 @@ export default function DriveSync() {
                               />
                               <Button
                                 onClick={handleOpenPickerForFolder}
-                                variant="outline"
+                                variant="secondary"
                                 size="icon"
                                 disabled={!isEditing || isSaving || !gapiLoaded || !pickerApiLoaded || !oauthToken || isLoadingSession}
                                 title="Google Pickerでフォルダを選択"
@@ -707,7 +707,7 @@ export default function DriveSync() {
                               />
                               <Button
                                 onClick={handleOpenPickerForSpreadsheet}
-                                variant="outline"
+                                variant="secondary"
                                 size="icon"
                                 disabled={!isEditing || isSaving || !gapiLoaded || !pickerApiLoaded || !oauthToken || isLoadingSession}
                                 title="Google Pickerでスプレッドシートを選択"
@@ -752,12 +752,12 @@ export default function DriveSync() {
                     </Button>
                   )}
                   {isEditing && hasExistingSettings && (
-                     <Button variant="outline" onClick={toggleEditMode} className="flex-1 py-3 text-base">
+                     <Button variant="secondary" onClick={toggleEditMode} className="flex-1 py-3 text-base">
                        キャンセル
                      </Button>
                   )}
                    {!isEditing && hasExistingSettings && (
-                       <Button onClick={toggleEditMode} className="w-full py-3 text-base" variant="outline">
+                       <Button onClick={toggleEditMode} className="w-full py-3 text-base " variant="secondary">
                            <Edit size={16} className="mr-2"/> 設定を変更する
                        </Button>
                    )}

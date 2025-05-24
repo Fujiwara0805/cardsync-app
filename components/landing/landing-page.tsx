@@ -57,7 +57,7 @@ export default function LandingPage() {
     },
     {
       icon: <Database className="h-8 w-8 text-primary" />,
-      title: '情報はスプレッドシートに集約',
+      title: 'スプレッドシートに集約',
       description: '抽出データはリアルタイムでGoogleスプレッドシートへ。検索、編集、共有も思いのまま。'
     },
     {
@@ -122,7 +122,7 @@ export default function LandingPage() {
                 className="flex flex-col space-y-5 sm:space-y-8 text-center lg:text-left"
               >
                 <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-foreground">
-                  その名刺、<span className="text-primary">眠らせていませんか？</span>
+                  <span className="text-primary">その名刺、眠らせていませんか？</span>
                 </h1>
                 <p className="text-lg sm:text-xl text-muted-foreground max-w-xl mx-auto lg:mx-0">
                   CardSyncが、あなたの名刺管理を劇的に変革します。山積みの名刺、煩雑な手入力、更新されない情報… そんな悩みはもう不要。AIとクラウドの力で、貴重な人脈を「活きる」資産へ。ビジネスのスタートアップも、日々の業務効率化も、CardSyncにお任せください。
@@ -168,7 +168,7 @@ export default function LandingPage() {
         <section id="features" className="py-16 md:py-20 bg-muted/30 px-4">
           <div className="container mx-auto">
             <div className="text-center mb-12 sm:mb-16">
-              <h2 className="text-3xl sm:text-4xl font-bold text-foreground">CardSyncが選ばれる理由</h2>
+              <h2 className="text-xl sm:text-2xl font-bold text-primary">CardSyncが選ばれる理由</h2>
               <p className="mt-4 sm:mt-5 text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto">
                 名刺管理の「あったらいいな」を全て凝縮。あなたのビジネスを次のステージへ導く、CardSyncだけの価値を体験してください。
               </p>
@@ -199,7 +199,7 @@ export default function LandingPage() {
         <section className="py-16 md:py-20 px-4">
           <div className="container mx-auto">
             <div className="max-w-3xl mx-auto text-center mb-12 sm:mb-16">
-              <h2 className="text-3xl sm:text-4xl font-bold text-foreground">
+              <h2 className="text-xl sm:text-2xl font-bold text-primary">
                 あなたのデータは、安全かつスマートに。
               </h2>
               <p className="mt-4 sm:mt-5 text-lg sm:text-xl text-muted-foreground">
