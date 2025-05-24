@@ -593,7 +593,7 @@ export default function DriveSync() {
                                   value={folderId}
                                   onChange={(e) => setFolderId(e.target.value)}
                                   disabled={!isEditing || isSaving}
-                                  className={cn("bg-background flex-grow", !isEditing && hasExistingSettings && "bg-gray-100 dark:bg-gray-800")}
+                                  className={cn("bg-background flex-grow", !isEditing && hasExistingSettings && "bg-gray-600 dark:bg-gray-800")}
                               />
                               <Button
                                 onClick={handleOpenPickerForFolder}
@@ -703,7 +703,7 @@ export default function DriveSync() {
                                   value={spreadsheetId}
                                   onChange={(e) => setSpreadsheetId(e.target.value)}
                                   disabled={!isEditing || isSaving}
-                                  className={cn("bg-background flex-grow", !isEditing && hasExistingSettings && "bg-gray-100 dark:bg-gray-800")}
+                                  className={cn("bg-background flex-grow", !isEditing && hasExistingSettings && "bg-gray-600 dark:bg-gray-800")}
                               />
                               <Button
                                 onClick={handleOpenPickerForSpreadsheet}
