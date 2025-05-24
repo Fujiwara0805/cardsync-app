@@ -8,7 +8,7 @@ export default function PrivacyPolicyPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-6">
-        <Button variant="outline" size="sm" asChild>
+        <Button variant="default" size="sm" asChild>
           <Link href="/dashboard/settings">
             <ArrowLeft className="mr-2 h-4 w-4" />
             設定に戻る

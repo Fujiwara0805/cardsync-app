@@ -44,7 +44,7 @@ export default function EmptyState({ title, description, iconName, actionButton 
           <Upload className="mr-2 h-4 w-4" />
           名刺をアップロード
         </Button>
-        <Button variant="outline" onClick={handleDriveSettingsClick}>
+        <Button variant="default" onClick={handleDriveSettingsClick}>
           Google Drive設定を確認
         </Button>
       </div>
