@@ -125,7 +125,7 @@ export default function LandingPage() {
                   <span className="text-primary">その名刺、眠らせていませんか？</span>
                 </h1>
                 <p className="text-lg sm:text-xl text-muted-foreground max-w-xl mx-auto lg:mx-0">
-                  CardSyncが、あなたの名刺管理を劇的に変革します。山積みの名刺、煩雑な手入力、更新されない情報… そんな悩みはもう不要。AIとクラウドの力で、貴重な人脈を「活きる」資産へ。スマートな名刺管理を、CardSyncにお任せください。
+                  CardSyncが、あなたの名刺管理を劇的に変革します。Googleドライブ内にフォルダとスプレットシートを作成するだけで、あなただけの名刺管理を可能にします。山積みの名刺、煩雑な手入力、更新されない情報… そんな悩みはもう不要。AIとクラウドの力で、貴重な人脈を「活きる」資産へ。スマートな名刺管理を、CardSyncにお任せください。
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 sm:gap-5 justify-center lg:justify-start pt-4">
                   {session ? (
