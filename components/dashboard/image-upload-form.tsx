@@ -168,11 +168,11 @@ export default function ImageUploadForm() {
             {selectedFile && (
               <>
                 <div>
-                  <label htmlFor="fileName" className="block text-sm font-medium text-foreground mb-1">
+                  <label htmlFor="fileName" className="block text-sm font-medium text-primary">
                     ファイル名 (拡張子 .jpeg は自動付与)
                   </label>
                   <div className="relative">
-                    <Edit3 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Edit3 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
                     <Input
                       id="fileName"
                       type="text"
@@ -187,7 +187,7 @@ export default function ImageUploadForm() {
                 </div>
 
                 <div>
-                  <label htmlFor="memo" className="block text-sm font-medium text-foreground mb-1">
+                  <label htmlFor="memo" className="block text-sm font-medium text-primary">
                     メモ (任意)
                   </label>
                   <Textarea
