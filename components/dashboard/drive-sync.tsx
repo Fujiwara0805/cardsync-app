@@ -410,9 +410,10 @@ export default function DriveSync() {
       return;
     }
 
-    const view = new window.google.picker.DocsView(window.google.picker.ViewId.FOLDERS) // FOLDERSビューを使用
+    const view = new window.google.picker.DocsView(window.google.picker.ViewId.FOLDERS)
       .setIncludeFolders(true)
-      .setMimeTypes("application/vnd.google-apps.folder"); // フォルダのMIMEタイプ
+      .setMimeTypes("application/vnd.google-apps.folder")
+      .setSelectFolderEnabled(true);
 
     const picker = new window.google.picker.PickerBuilder()
       .setAppId(APP_ID)
@@ -582,7 +583,7 @@ export default function DriveSync() {
                             <span className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-gray-500 text-white text-xs font-semibold">3</span>
                         </div>
                         <div className="min-w-0 flex-1">
-                            <p className="text-sm font-medium text-gray-700 dark:text-gray-300">フォルダIDの入力</p>
+                            <p className="text-sm font-medium text-gray-700 dark:text-gray-900">フォルダIDの入力</p>
                             <p className="text-xs text-muted-foreground mt-1 mb-2">
                             上記の手順が完了したら、歯車アイコンを押下して作成したファイルを選択してください。
                             </p>
@@ -593,7 +594,7 @@ export default function DriveSync() {
                                   value={folderId}
                                   onChange={(e) => setFolderId(e.target.value)}
                                   disabled={!isEditing || isSaving}
-                                  className={cn("bg-background flex-grow", !isEditing && hasExistingSettings && "bg-gray-600 dark:bg-gray-800")}
+                                  className={cn("bg-background flex-grow", !isEditing && hasExistingSettings && "bg-gray-700 dark:bg-gray-900")}
                               />
                               <Button
                                 onClick={handleOpenPickerForFolder}
@@ -703,7 +704,7 @@ export default function DriveSync() {
                                   value={spreadsheetId}
                                   onChange={(e) => setSpreadsheetId(e.target.value)}
                                   disabled={!isEditing || isSaving}
-                                  className={cn("bg-background flex-grow", !isEditing && hasExistingSettings && "bg-gray-600 dark:bg-gray-800")}
+                                  className={cn("bg-background flex-grow", !isEditing && hasExistingSettings && "bg-gray-700 dark:bg-gray-900")}
                               />
                               <Button
                                 onClick={handleOpenPickerForSpreadsheet}
