@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea'; // Textareaをインポー�
 import { UploadCloud, FileImage, Edit3, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import Image from 'next/image'; // 画像プレビュー用
 import { ToastNotification, type NotificationType } from '@/components/ui/toast-notification'; // 通知用
+import { useRouter } from 'next/navigation'; // <-- この行を追加
 
 interface NotificationState {
   isOpen: boolean;
@@ -30,6 +31,7 @@ export default function ImageUploadForm() {
   });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const router = useRouter(); // <-- この行を追加
 
   const showNotification = (message: string, type: NotificationType) => {
     setNotification({ isOpen: true, message, type });
@@ -116,6 +118,9 @@ export default function ImageUploadForm() {
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
+
+      // 名刺一覧画面に遷移
+      router.push('/dashboard/cards'); // <-- この行を追加 (名刺一覧画面のパスを正確に指定してください)
 
     } catch (error: any) {
       console.error("Upload or processing error:", error);
