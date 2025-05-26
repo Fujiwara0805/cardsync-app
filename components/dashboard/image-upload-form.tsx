@@ -168,7 +168,7 @@ export default function ImageUploadForm() {
             {selectedFile && (
               <>
                 <div>
-                  <label htmlFor="fileName" className="block text-sm font-medium text-primary">
+                  <label htmlFor="fileName" className="block text-sm font-medium text-secondary">
                     ファイル名 (拡張子 .jpeg は自動付与)
                   </label>
                   <div className="relative">
@@ -179,7 +179,7 @@ export default function ImageUploadForm() {
                       value={fileName}
                       onChange={(e) => setFileName(e.target.value)}
                       placeholder="例: 株式会社ABC_営業部_山田太郎"
-                      className="pl-10"
+                      className="pl-10 text-gray-800 dark:text-gray-800"
                       disabled={isUploading || isProcessing}
                       required
                     />
@@ -187,7 +187,7 @@ export default function ImageUploadForm() {
                 </div>
 
                 <div>
-                  <label htmlFor="memo" className="block text-sm font-medium text-primary">
+                  <label htmlFor="memo" className="block text-sm font-medium text-secondary">
                     メモ (任意)
                   </label>
                   <Textarea
@@ -196,6 +196,7 @@ export default function ImageUploadForm() {
                     onChange={(e) => setMemo(e.target.value)}
                     placeholder="例: 2023年展示会での面談、後日フォローアップ予定"
                     rows={3}
+                    className="text-gray-800 dark:text-gray-800"
                     disabled={isUploading || isProcessing}
                   />
                 </div>
