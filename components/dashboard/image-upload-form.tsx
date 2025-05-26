@@ -168,7 +168,7 @@ export default function ImageUploadForm() {
             {selectedFile && (
               <>
                 <div>
-                  <label htmlFor="fileName" className="block text-sm font-medium text-secondary">
+                  <label htmlFor="fileName" className="block text-sm font-medium text-gray-200 dark:text-gray-200">
                     ファイル名 (拡張子 .jpeg は自動付与)
                   </label>
                   <div className="relative">
@@ -187,7 +187,7 @@ export default function ImageUploadForm() {
                 </div>
 
                 <div>
-                  <label htmlFor="memo" className="block text-sm font-medium text-secondary">
+                  <label htmlFor="memo" className="block text-sm font-medium text-gray-200 dark:text-gray-200">
                     メモ (任意)
                   </label>
                   <Textarea
