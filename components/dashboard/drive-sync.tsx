@@ -583,7 +583,7 @@ export default function DriveSync() {
                             <span className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-gray-500 text-white text-xs font-semibold">3</span>
                         </div>
                         <div className="min-w-0 flex-1">
-                            <p className="text-sm font-medium text-gray-700 dark:text-gray-900">フォルダIDの入力</p>
+                            <p className="text-sm font-medium  text-gray-700 dark:text-gray-300">フォルダIDの入力</p>
                             <p className="text-xs text-muted-foreground mt-1 mb-2">
                             上記の手順が完了したら、歯車アイコンを押下して作成したファイルを選択してください。
                             </p>

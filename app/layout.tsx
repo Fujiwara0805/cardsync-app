@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { Inter as FontSans } from 'next/font/google';
 import AppBody from '@/components/AppBody'; // 作成したAppBodyコンポーネントをインポート
 import { cn } from '@/lib/utils';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 
 const fontSans = FontSans({
   subsets: ['latin'],
@@ -61,6 +62,7 @@ export default function RootLayout({
         )}
       >
         <AppBody>{children}</AppBody>
+        <SpeedInsights />
       </body>
     </html>
   );
